@@ -1391,17 +1391,15 @@ return index
                     return Enum.ToObject(t, number);
                 }
 
-				object convertObj = null;
-				if(obj!=null) {
-	                if (t.IsInstanceOfType(obj))
-	                {
-	                    convertObj = obj; // if t is parent of obj, ignore change type
-	                }
-	                else
-	                {
-	                    convertObj = Convert.ChangeType(obj, t);
-	                }
-				}
+                object convertObj;
+                if (t.IsInstanceOfType(obj))
+                {
+                    convertObj = obj; // if t is parent of obj, ignore change type
+                }
+                else
+                {
+                    convertObj = Convert.ChangeType(obj, t);
+                }
                 return obj == null ? null : convertObj;
             }
             catch(Exception e) {
@@ -1409,12 +1407,6 @@ return index
             }
         }
 
-        /// <summary>
-        /// 根据p在 lua 中的类型，返回相应的c# 数据类型
-        /// </summary>
-        /// <param name="l"></param>
-        /// <param name="p"></param>
-        /// <returns></returns>
 		static public object checkVar(IntPtr l, int p)
 		{
 			LuaTypes type = LuaDLL.lua_type(l, p);
