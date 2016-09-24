@@ -1,4 +1,4 @@
-﻿// The MIT License (MIT)
+// The MIT License (MIT)
 
 // Copyright 2015 Siney/Pangweiwei siney@yeah.net
 //
@@ -1361,7 +1361,16 @@ return index
                     return Enum.ToObject(t, number);
                 }
 
-                return obj == null ? null : Convert.ChangeType(obj, t);
+                object convertObj;
+                if (t.IsInstanceOfType(obj))
+                {
+                    convertObj = obj; // if t is parent of obj, ignore change type
+                }
+                else
+                {
+                    convertObj = Convert.ChangeType(obj, t);
+                }
+                return obj == null ? null : convertObj;
             }
             catch(Exception e) {
 				throw new Exception(string.Format("parameter {0} expected {1}, got {2}, exception: {3}", p, t.Name, obj == null ? "null" : obj.GetType().Name, e.Message));
