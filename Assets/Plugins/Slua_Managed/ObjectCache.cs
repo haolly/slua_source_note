@@ -328,27 +328,7 @@ namespace SLua
 			push(l, o, true);
 		}
 
-		internal void push(IntPtr l, object o, bool checkReflect)
-		{
-
-            //real push object into list
-			int index = allocID (l, o);
-			if (index < 0)
-				return;
-
-			bool gco = isGcObject(o);
-
-#if SLUA_CHECK_REFLECTION
-			int isReflect = LuaDLL.luaS_pushobject(l, index, getAQName(o), gco, udCacheRef);
-			if (isReflect != 0 && checkReflect)
-			{
-				Logger.LogWarning(string.Format("{0} not exported, using reflection instead", o.ToString()));
-			}
-#else
-			LuaDLL.luaS_pushobject(l, index, getAQName(o), gco, udCacheRef);
-#endif
-
-		}
+		
 
         /// <summary>
         /// analogy with function push(IntPtr l, object o, bool checkReflect)
@@ -387,13 +367,33 @@ namespace SLua
 			if (found)
 			{
 				if (LuaDLL.luaS_getcacheud(l, index, udCacheRef) == 1)
-					return -1;
+					return index;
 			}
 
 			index = add(o);
 			return index;
 		}
 
+		internal void push(IntPtr l, object o, bool checkReflect)
+		{
+			
+			int index = allocID (l, o);
+			if (index < 0)
+				return;
+
+			bool gco = isGcObject(o);
+
+#if SLUA_CHECK_REFLECTION
+			int isReflect = LuaDLL.luaS_pushobject(l, index, getAQName(o), gco, udCacheRef);
+			if (isReflect != 0 && checkReflect)
+			{
+				Logger.LogWarning(string.Format("{0} not exported, using reflection instead", o.ToString()));
+			}
+#else
+			LuaDLL.luaS_pushobject(l, index, getAQName(o), gco, udCacheRef);
+#endif
+
+		}
 
 		static Dictionary<Type, string> aqnameMap = new Dictionary<Type, string>();
 		static string getAQName(object o)
