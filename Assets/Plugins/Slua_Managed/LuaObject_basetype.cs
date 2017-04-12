@@ -358,6 +358,14 @@ namespace SLua
 			return true;
 		}
 		
+        /// <summary>
+        /// Ensure the object in statck p is luathread and create a luathread use it,\
+        /// pops the object and return created LuaThread
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="p"></param>
+        /// <param name="lt"></param>
+        /// <returns></returns>
 		static public bool checkType(IntPtr l, int p, out LuaThread lt)
 		{
 			if (LuaDLL.lua_isnil(l, p))
@@ -372,6 +380,14 @@ namespace SLua
 			return true;
 		}
 
+        /// <summary>
+        /// Ensure the object in stack index p is LuaFunction and create a luafunction use it,
+        /// pops the object and return luaFunction
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="p"></param>
+        /// <param name="f"></param>
+        /// <returns></returns>
         static public bool checkType(IntPtr l, int p, out LuaFunction f)
 		{
 			if (LuaDLL.lua_isnil(l, p))
@@ -386,6 +402,14 @@ namespace SLua
 			return true;
 		}
 
+        /// <summary>
+        /// Ensure the object in stack index p is a LuaTable and create a LuaTable use it,
+        /// pops the object and return luatable
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="p"></param>
+        /// <param name="t"></param>
+        /// <returns></returns>
 		static public bool checkType(IntPtr l, int p, out LuaTable t)
 		{
 			if (LuaDLL.lua_isnil(l, p))

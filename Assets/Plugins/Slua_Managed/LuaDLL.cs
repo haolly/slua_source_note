@@ -464,6 +464,13 @@ namespace SLua
         {
             return LuaDLL.lua_type(luaState, index) == LuaTypes.LUA_TBOOLEAN;
         }
+        /// <summary>
+        /// create a reference in the table at index registryIndex, for the object at the top of the stack, 
+        /// and pops the object
+        /// </summary>
+        /// <param name="luaState"></param>
+        /// <param name="registryIndex"></param>
+        /// <returns></returns>
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern int luaL_ref(IntPtr luaState, int registryIndex);
 

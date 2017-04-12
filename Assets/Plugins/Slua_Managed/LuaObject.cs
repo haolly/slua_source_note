@@ -89,6 +89,9 @@ namespace SLua
         static protected LuaCSFunction lua_lt = new LuaCSFunction(luaLt);
         static protected LuaCSFunction lua_le = new LuaCSFunction(luaLe);
         static protected LuaCSFunction lua_tostring = new LuaCSFunction(ToString);
+        /// <summary>
+        /// <see cref="checkType(System.IntPtr,int,out SLua.LuaDelegate)"/>
+        /// </summary>
 		const string DelgateTable = "__LuaDelegate";
 
 		static protected LuaFunction newindex_func;
@@ -804,6 +807,12 @@ return index
 
 		static private int errorRef = 0;
 
+        /// <summary>
+        /// ensure the stack has the errorFunc handler, and put the handler in the top of statck, 
+        /// return stack size, which is the errorFunc handler's stack position
+        /// </summary>
+        /// <param name="l"></param>
+        /// <returns></returns>
 		public static int pushTry(IntPtr l)
 		{
 			if (!LuaState.get(l).isMainThread())
