@@ -404,6 +404,13 @@ namespace SLua
             lua_pushinteger(luaState, (IntPtr)i);
         }
 
+
+        /// <summary>
+        /// Ensure the stackPos is a integer, and return it
+        /// </summary>
+        /// <param name="luaState"></param>
+        /// <param name="stackPos"></param>
+        /// <returns></returns>
         public static int luaL_checkinteger(IntPtr luaState, int stackPos)
         {
             luaL_checktype(luaState, stackPos, LuaTypes.LUA_TNUMBER);
@@ -519,7 +526,7 @@ namespace SLua
         public static void lua_pushcfunction(IntPtr luaState, LuaCSFunction function)
         {
 #if SLUA_STANDALONE
-            // Add all LuaCSFunction£¬ or they will be GC collected!  (problem at windows, .net framework 4.5, `CallbackOnCollectedDelegated` exception)
+            // Add all LuaCSFunctionï¿½ï¿½ or they will be GC collected!  (problem at windows, .net framework 4.5, `CallbackOnCollectedDelegated` exception)
             GCHandle.Alloc(function);
 #endif
             IntPtr fn = Marshal.GetFunctionPointerForDelegate(function);
@@ -671,7 +678,7 @@ namespace SLua
         public static void lua_pushcclosure(IntPtr l, LuaCSFunction f, int nup)
         {
 #if SLUA_STANDALONE
-            // Add all LuaCSFunction£¬ or they will be GC collected!  (problem at windows, .net framework 4.5, `CallbackOnCollectedDelegated` exception)
+            // Add all LuaCSFunctionï¿½ï¿½ or they will be GC collected!  (problem at windows, .net framework 4.5, `CallbackOnCollectedDelegated` exception)
             GCHandle.Alloc(f);
 #endif
             IntPtr fn = Marshal.GetFunctionPointerForDelegate(f);
@@ -722,7 +729,7 @@ namespace SLua
 
 
         /// <summary>
-        /// //Èç¹ûÓÐ__base£¬ÔòÏòÉÏ²éÕÒ, È»ºóÅÐ¶Ï__typenameÊÇ·ñºÍtÏàÍ¬
+        /// //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½__baseï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï²ï¿½ï¿½ï¿½, È»ï¿½ï¿½ï¿½Ð¶ï¿½__typenameï¿½Ç·ï¿½ï¿½ï¿½tï¿½ï¿½Í¬
         /// </summary>
         /// <param name="l"></param>
         /// <param name="index"></param>

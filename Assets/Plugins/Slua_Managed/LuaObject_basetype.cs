@@ -164,6 +164,13 @@ namespace SLua
 		#endregion
 
 		#region int
+        /// <summary>
+        /// Ensure p is a integer, and return it
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="p"></param>
+        /// <param name="v"></param>
+        /// <returns></returns>
 		static public bool checkType(IntPtr l, int p, out int v)
 		{
 			v = (int)LuaDLL.luaL_checkinteger(l, p);
@@ -282,6 +289,13 @@ namespace SLua
 		#endregion
 
 		#region string
+        /// <summary>
+        /// TODO
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="p"></param>
+        /// <param name="v"></param>
+        /// <returns></returns>
 		static public bool checkType(IntPtr l, int p, out string v)
 		{
 			if(LuaDLL.lua_isuserdata(l,p)>0)

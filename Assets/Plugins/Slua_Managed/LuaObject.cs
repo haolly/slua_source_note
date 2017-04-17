@@ -104,6 +104,11 @@ namespace SLua
 
 		public static void init(IntPtr l)
 		{
+			///這裏的潛規則,h[2] 是什麼？應該是一個Set函數
+			/// <summary>
+			/// 獲取當前ud 的元表，從元表中獲取k所對應的值，如果沒有，則去__parent中去找，如果有，h[2]應該是一個Set函數
+			/// </summary>
+			/// <returns></returns>
 			string newindexfun = @"
 
 local getmetatable=getmetatable
@@ -158,10 +163,11 @@ end
 return index
 ";
 			LuaState L = LuaState.get(l);
+			//TODO, 怎麼可以直接強制轉換呢？
 			newindex_func = (LuaFunction)L.doString(newindexfun);
 			index_func = (LuaFunction)L.doString(indexfun);
 
-			// object method
+			// create base object and associate with base method
 			LuaDLL.lua_createtable(l, 0, 4);
 			addMember(l, ToString);
 			addMember(l, GetHashCode);
@@ -178,7 +184,14 @@ return index
 
 			setupPushVar();
 		}
+		#region Basic Object function
 
+		/// <summary>
+		/// TODO
+		/// /// 爲什麼push多一個true ？？
+		/// </summary>
+		/// <param name="l"></param>
+		/// <returns></returns>
 		[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
 		static public int ToString(IntPtr l)
 		{
@@ -243,6 +256,7 @@ return index
 				return error(l, e);
 			}
 		}
+		#endregion
 
 		static void setupPushVar()
 		{
@@ -700,6 +714,13 @@ return index
 			LuaDLL.lua_pop(l, 1);
 		}
 
+        /// <summary>
+		/// TODO
+        /// 這裏的潛規則是,已經將tab壓入棧中
+		/// TODO, -2 和 -3 位置是怎麼確定的？
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="func"></param>
 		protected static void addMember(IntPtr l, LuaCSFunction func)
 		{
             checkMethodValid(func);
@@ -1370,6 +1391,11 @@ return index
 			throw new Exception("arg 1 expect self, but get null");
 		}
 
+        /// <summary>
+        /// check the first position in the stack is not nil
+        /// </summary>
+        /// <param name="l"></param>
+        /// <returns></returns>
 		public static object checkSelf(IntPtr l)
 		{
 			object o = checkObj(l, 1);

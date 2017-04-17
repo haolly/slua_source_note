@@ -71,6 +71,12 @@ namespace SLua
 
 		static Dictionary<string, ArrayPropFunction> propMethod = new Dictionary<string, ArrayPropFunction>();
 		[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+        /// <summary>
+		/// TODO
+        /// 爲啥要多push 一個true ？？
+        /// </summary>
+        /// <param name="l"></param>
+        /// <returns></returns>
 		static public int luaIndex(IntPtr l)
 		{
 			try
@@ -78,16 +84,16 @@ namespace SLua
 				Array a=(Array)checkSelf(l);
 				if (LuaDLL.lua_type(l, 2) == LuaTypes.LUA_TSTRING)
 				{
-					string mn;
-					checkType(l, 2, out mn);
+					string methodName;
+					checkType(l, 2, out methodName);
 					ArrayPropFunction fun;
-					if (propMethod.TryGetValue(mn, out fun))
+					if (propMethod.TryGetValue(methodName, out fun))
 					{
 						pushValue(l, true);
 						return fun(l, a) + 1;
 					}
 					else
-						throw new Exception("Can't find property named " + mn);
+						throw new Exception("Can't find property named " + methodName);
 				}
 				else
 				{
