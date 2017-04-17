@@ -374,6 +374,14 @@ namespace SLua
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern int lua_tointeger(IntPtr luaState, int index);
 
+        /// <summary>
+        /// todo
+        /// </summary>
+        /// <param name="luaState"></param>
+        /// <param name="buff"></param>
+        /// <param name="size"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public static int luaL_loadbuffer(IntPtr luaState, byte[] buff, int size, string name)
         {
             return LuaDLLWrapper.luaLS_loadbuffer(luaState, buff, size, name);
@@ -628,6 +636,14 @@ namespace SLua
 
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern void luaS_newuserdata(IntPtr luaState, int val);
+
+        /// <summary>
+        /// //check the data in the stack postion index is a userData, or it's most base is a userData
+        /// if is, return it's address, or -1 if it's not
+        /// </summary>
+        /// <param name="luaState"></param>
+        /// <param name="obj"></param>
+        /// <returns></returns>
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern int luaS_rawnetobj(IntPtr luaState, int obj);
 
@@ -705,6 +721,13 @@ namespace SLua
         public static extern int luaS_getcacheud(IntPtr l, int index, int cref);
 
 
+        /// <summary>
+        /// //如果有__base，则向上查找, 然后判断__typename是否和t相同
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="index"></param>
+        /// <param name="t"></param>
+        /// <returns></returns>
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern int luaS_subclassof(IntPtr l, int index, string t);
     }

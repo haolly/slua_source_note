@@ -291,7 +291,7 @@ return index
 				   LuaDLL.lua_pushinteger(L, (byte)o);
 			   };
 
-
+            //long
 			typePushMap[typeof(Int64)] =
 				typePushMap[typeof(UInt64)] =
 				(IntPtr L, object o) =>
@@ -907,6 +907,12 @@ return index
 			return LuaDLL.luaS_subclassof(l, p, null) == 1;
 		}
 
+        /// <summary>
+        /// 是一个table，并且有metatable，并且metatable有字段__typename
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="p"></param>
+        /// <returns></returns>
 		static bool isLuaValueType(IntPtr l, int p)
 		{
 			return LuaDLL.luaS_checkluatype(l, p, null) == 1;
@@ -1223,6 +1229,12 @@ return index
             }
         }
 
+        /// <summary>
+        /// 根据p的类型，返回相应的数据
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="p"></param>
+        /// <returns></returns>
 		static public object checkVar(IntPtr l, int p)
 		{
 			LuaTypes type = LuaDLL.lua_type(l, p);

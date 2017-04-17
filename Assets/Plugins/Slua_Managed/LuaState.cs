@@ -97,6 +97,12 @@ namespace SLua
 			}
 		}
 
+        /// <summary>
+        /// push the object in register to stack
+        /// 將這個對象在register 中的索引 ref所對應的object軋入斬中,
+        /// == get_ref
+        /// </summary>
+        /// <param name="l"></param>
 		public void push(IntPtr l)
 		{
 			LuaDLL.lua_getref(l, valueref);
@@ -187,6 +193,12 @@ namespace SLua
 		{
 		}
 
+        /// <summary>
+        /// 类似于lua_pcall，需要提前将参数压入栈中
+        /// </summary>
+        /// <param name="nArgs"></param>
+        /// <param name="errfunc"></param>
+        /// <returns></returns>
 		public bool pcall(int nArgs, int errfunc)
 		{
 
@@ -207,6 +219,7 @@ namespace SLua
 			LuaDLL.lua_insert(L, -nArgs - 1);
 			if (LuaDLL.lua_pcall(L, nArgs, -1, errfunc) != 0)
 			{
+                //pop error msg, leave errorFunc in stack
 				LuaDLL.lua_pop(L, 1);
 				return false;
 			}
@@ -226,6 +239,7 @@ namespace SLua
 			int error = LuaObject.pushTry(state.L);
 			if (innerCall(0, error))
 			{
+                //return all result from the function result
 				return state.topObjects(error - 1);
 			}
 			return null;

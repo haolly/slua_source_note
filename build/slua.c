@@ -114,6 +114,7 @@ LUA_API void luaS_newuserdata(lua_State *L, int val)
 	*pointer = val;
 }
 
+//check the data in the stack postion index is a userData, or it's most base is a userData
 LUA_API int luaS_rawnetobj(lua_State *L, int index)
 {
 	int *ud;
@@ -231,7 +232,7 @@ static void setmetatable(lua_State *L, int p, int what) {
 }
 
 
-
+//是一个table，并且有metatable，metatable[__typename] == t 如果t != null
 LUA_API int luaS_checkluatype(lua_State *L, int p, const char *t) {
 	int top;
 	const char* b;
@@ -468,6 +469,7 @@ LUA_API int luaS_getcacheud(lua_State *l, int index, int cref) {
 	return 0;
 }
 
+//如果有__base，则向上查找, 然后判断__typename是否和t相同
 LUA_API int luaS_subclassof(lua_State *l, int p, const char* t) {
 
 	const char* tname;
