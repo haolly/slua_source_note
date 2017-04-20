@@ -1,17 +1,17 @@
 ﻿// The MIT License (MIT)
 
 // Copyright 2015 Siney/Pangweiwei siney@yeah.net
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -228,7 +228,7 @@ namespace SLua
             if (self is IDictionary)
             {
                 var dict = self as IDictionary;
-                
+
                 object v = dict[key];
                 pushValue(l, true);
                 pushVar(l, v);
@@ -245,6 +245,14 @@ namespace SLua
             return o.GetType();
         }
 
+        /// <summary>
+        /// 根据self的类型来获取key所对应的值
+        /// 支持方法、属性、字段
+        /// /// </summary>
+        /// <param name="l"></param>
+        /// <param name="self"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
         static int indexString(IntPtr l, object self, string key)
         {
             Type t = getType(self);
@@ -258,6 +266,7 @@ namespace SLua
                 object v = (self as IDictionary)[key];
                 if (v != null)
                 {
+                    //TODO, 为啥多push一个true？
                     pushValue(l, true);
                     pushVar(l, v);
                     return 2;
@@ -272,6 +281,7 @@ namespace SLua
                 return error(l, "Can't find " + key);
             }
 
+            //TODO, 为啥多push一个true？
             pushValue(l, true);
             MemberInfo mi = mis[0];
             switch (mi.MemberType)
@@ -419,7 +429,7 @@ namespace SLua
 
                     dictKey = changeType(dictKey, keyType); // if key is not int but ushort/uint,  IDictionary will cannot find the key and return null!
                 }
-                
+
                 pushValue(l, true);
                 pushVar(l, dict[dictKey]);
                 return 2;
@@ -514,10 +524,17 @@ namespace SLua
             }
         }
 
+        /// <summary>
+        /// 创建一个LuaVarObject对象，放入注册表中
+        /// 创建一个LucCSFunction对象，放入注册表中
+        /// 这两个对象都有自己的元方法
+        /// /// /// </summary>
+        /// <param name="l"></param>
         static new public void init(IntPtr l)
         {
             LuaDLL.lua_createtable(l, 0, 3);
             pushValue(l, luaIndex);
+            //设置元方法（这个函数会将函数从栈上弹出)
             LuaDLL.lua_setfield(l, -2, "__index");
             pushValue(l, luaNewIndex);
             LuaDLL.lua_setfield(l, -2, "__newindex");

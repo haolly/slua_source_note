@@ -216,7 +216,7 @@ namespace SLua
 
         public static void lua_pushglobaltable(IntPtr l)
         {
-            lua_rawgeti(l, LuaIndexes.LUA_REGISTRYINDEX, 2); 
+            lua_rawgeti(l, LuaIndexes.LUA_REGISTRYINDEX, 2);
         }
 
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
@@ -238,7 +238,7 @@ namespace SLua
 
 		[DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int luaS_pcall(IntPtr luaState, int nArgs, int nResults, int errfunc);
-		
+
 		public static int lua_call(IntPtr luaState, int nArgs, int nResults)
         {
             return lua_callk(luaState, nArgs, nResults, 0, IntPtr.Zero);
@@ -254,7 +254,7 @@ namespace SLua
         public static double lua_tonumber(IntPtr luaState, int index)
         {
             return lua_tonumberx(luaState, index, IntPtr.Zero);
-        }        
+        }
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern Int64 lua_tointegerx(IntPtr luaState, int index,IntPtr x);
         public static int lua_tointeger(IntPtr luaState, int index)
@@ -312,7 +312,7 @@ namespace SLua
 
 		[DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int lua_compare(IntPtr luaState, int index1, int index2, int op);
-		
+
 		public static int lua_equal(IntPtr luaState, int index1, int index2)
 		{
 			return lua_compare(luaState, index1, index2, 0);
@@ -480,7 +480,7 @@ namespace SLua
             return LuaDLL.lua_type(luaState, index) == LuaTypes.LUA_TBOOLEAN;
         }
         /// <summary>
-        /// create a reference in the table at index registryIndex, for the object at the top of the stack, 
+        /// create a reference in the table at index registryIndex, for the object at the top of the stack,
         /// and pops the object
         /// </summary>
         /// <param name="luaState"></param>
@@ -527,6 +527,8 @@ namespace SLua
         {
 #if SLUA_STANDALONE
             // Add all LuaCSFunction�� or they will be GC collected!  (problem at windows, .net framework 4.5, `CallbackOnCollectedDelegated` exception)
+            //See https://manski.net/2012/06/pinvoke-tutorial-pinning-part-4/
+            //防止GC收集
             GCHandle.Alloc(function);
 #endif
             IntPtr fn = Marshal.GetFunctionPointerForDelegate(function);

@@ -1,17 +1,17 @@
 // The MIT License (MIT)
 
 // Copyright 2015 Siney/Pangweiwei siney@yeah.net
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,12 +29,12 @@ namespace SLua
 {
 
 /* https://msdn.microsoft.com/zh-cn/library/s1ax56ch.aspx
- * 
+ *
  * null								LUA_TNIL
  * Value Types:
  * 	enum
  * 	struct:
- * 		Numeric types: 
+ * 		Numeric types:
  *	 		Integral Types: 		LUA_TNUMBER
  * 				sbyte  = SByte
  * 				byte   = Byte
@@ -59,13 +59,13 @@ namespace SLua
  * 	T[]								LUA_TTABLE limit support
  *  interface, dynamic 				unsupport
  * IntPtr							LUA_TLIGHTUSERDATA
- * 
- * 
- * every type should implement: 
+ *
+ *
+ * every type should implement:
  * 		public static bool checkType(IntPtr l, int p, out T v)
  *		public static void pushValue(IntPtr l, T v)
- * 
-*/	
+ *
+*/
 	public partial class LuaObject
 	{
 #region enum
@@ -90,7 +90,7 @@ namespace SLua
 			v = (sbyte)LuaDLL.luaL_checkinteger(l, p);
 			return true;
 		}
-		
+
 		public static void pushValue(IntPtr l, sbyte v)
 		{
 			LuaDLL.lua_pushinteger(l, v);
@@ -142,7 +142,7 @@ namespace SLua
 			v = (short)LuaDLL.luaL_checkinteger(l, p);
 			return true;
 		}
-		
+
 		public static void pushValue(IntPtr l, short i)
 		{
 			LuaDLL.lua_pushinteger(l, i);
@@ -155,12 +155,12 @@ namespace SLua
 			v = (ushort)LuaDLL.luaL_checkinteger(l, p);
 			return true;
 		}
-                
+
 		public static void pushValue(IntPtr l, ushort v)
 		{
 		    LuaDLL.lua_pushinteger(l, v);
 		}
-               
+
 		#endregion
 
 		#region int
@@ -176,21 +176,21 @@ namespace SLua
 			v = (int)LuaDLL.luaL_checkinteger(l, p);
 			return true;
 		}
-                
+
 		public static void pushValue(IntPtr l, int i)
 		{
 			LuaDLL.lua_pushinteger(l, i);
 		}
-		
+
 		#endregion
-		
+
 		#region uint
 		static public bool checkType(IntPtr l, int p, out uint v)
 		{
 			v = (uint)LuaDLL.luaL_checkinteger(l, p);
 			return true;
 		}
-		
+
 		public static void pushValue(IntPtr l, uint o)
 		{
 			LuaDLL.lua_pushnumber(l, o);
@@ -207,7 +207,7 @@ namespace SLua
 #endif
 			return true;
 		}
-		
+
 		public static void pushValue(IntPtr l, long i)
 		{
 #if LUA_5_3
@@ -216,7 +216,7 @@ namespace SLua
 			LuaDLL.lua_pushnumber(l, i);
 #endif
 		}
-		
+
 		#endregion
 
 		#region ulong
@@ -229,7 +229,7 @@ namespace SLua
 #endif
 			return true;
 		}
-		
+
 		public static void pushValue(IntPtr l, ulong o)
 		{
 			#if LUA_5_3
@@ -239,7 +239,7 @@ namespace SLua
 			#endif
 		}
 		#endregion
-		
+
 
 #endregion
 
@@ -255,7 +255,7 @@ namespace SLua
 		{
 			LuaDLL.lua_pushnumber(l, o);
 		}
-		
+
 		#endregion
 
 		#region double
@@ -264,12 +264,12 @@ namespace SLua
 			v = LuaDLL.luaL_checknumber(l, p);
 			return true;
 		}
-		
+
 		public static void pushValue(IntPtr l, double d)
 		{
 			LuaDLL.lua_pushnumber(l, d);
 		}
-		
+
 		#endregion
 #endregion
 
@@ -280,12 +280,12 @@ namespace SLua
 			v = LuaDLL.lua_toboolean(l, p);
 			return true;
 		}
-		
+
 		public static void pushValue(IntPtr l, bool b)
 		{
 			LuaDLL.lua_pushboolean(l, b);
 		}
-	
+
 		#endregion
 
 		#region string
@@ -312,7 +312,7 @@ namespace SLua
 				v = LuaDLL.lua_tostring(l, p);
 				return true;
 			}
-			
+
 			v = null;
 			return false;
 		}
@@ -330,7 +330,7 @@ namespace SLua
 		{
 			LuaDLL.lua_pushstring(l, s);
 		}
-		
+
 
 		#endregion
 
@@ -371,7 +371,7 @@ namespace SLua
 			LuaDLL.lua_pop(l, 1); // pop DelgateTable
 			return true;
 		}
-		
+
         /// <summary>
         /// Ensure the object in statck p is luathread and create a luathread use it,\
         /// pops the object and return created LuaThread
@@ -438,11 +438,16 @@ namespace SLua
 			return true;
 		}
 
+        /// <summary>
+        /// Push a wraped LuaCSFunction
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="f"></param>
 		public static void pushValue(IntPtr l, LuaCSFunction f)
 		{
 			LuaState.pushcsfunction (l, f);
 		}
-		
+
 		public static void pushValue(IntPtr l, LuaTable t)
 		{
 			if (t == null)
@@ -455,7 +460,7 @@ namespace SLua
 		#region Type
 		private static Type MonoType = typeof(Type).GetType();
 
-		public static Type FindType(string qualifiedTypeName) 
+		public static Type FindType(string qualifiedTypeName)
 		{
 			Type t = Type.GetType(qualifiedTypeName);
 
