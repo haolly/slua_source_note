@@ -784,6 +784,7 @@ end
 			LuaDLL.lua_pushcfunction(l, f);
 			if (LuaDLL.lua_pcall(l, 0, 0, err) != 0)
 			{
+				//pop error msg
 				LuaDLL.lua_pop(l, 1);
 			}
 			LuaDLL.lua_remove(l, err);

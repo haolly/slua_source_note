@@ -36,6 +36,12 @@ namespace SLua
 	{
 
 
+        /// <summary>
+        /// 將Array 轉換爲一個lua中的Table 壓入棧中
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="o"></param>
+        /// <returns></returns>
 		static int toTable(IntPtr l,Array o)
 		{
 

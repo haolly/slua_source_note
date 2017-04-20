@@ -1231,6 +1231,13 @@ return index
 			return true;
 		}
 
+        /// <summary>
+        /// Convert object in stack p to type t if it is convtable, else throw exception
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="p"></param>
+        /// <param name="t"></param>
+        /// <returns></returns>
         static public object checkVar(IntPtr l, int p, Type t)
         {
 			object obj = checkVar(l, p);

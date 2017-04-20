@@ -30,6 +30,10 @@ namespace SLua
 	using System.Collections.Generic;
 	using System.Runtime.CompilerServices;
 
+    /// <summary>
+    /// Each IntPtr(ie, state) has a cache
+	/// each cache is a list(or dictionary), which is equallity a stack
+    /// </summary>
 	public class ObjectCache
 	{
 		static Dictionary<IntPtr, ObjectCache> multiState = new Dictionary<IntPtr, ObjectCache>();
@@ -37,6 +41,11 @@ namespace SLua
 		static IntPtr oldl = IntPtr.Zero;
 		static internal ObjectCache oldoc = null;
 
+        /// <summary>
+        /// 從緩存中查找 l對應的緩存字典，如果沒有，就從__main_state 所對應的緩存中去找
+        /// </summary>
+        /// <param name="l"></param>
+        /// <returns></returns>
 		public static ObjectCache get(IntPtr l)
 		{
 			if (oldl == l)

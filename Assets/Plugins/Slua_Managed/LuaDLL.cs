@@ -647,7 +647,7 @@ namespace SLua
         public static extern void luaS_newuserdata(IntPtr luaState, int val);
 
         /// <summary>
-        /// //check the data in the stack postion index is a userData, or it's most base is a userData
+        /// //check the data in the stack postion index is a userData, or it's most base is a userData.
         /// if is, return it's address, or -1 if it's not
         /// </summary>
         /// <param name="luaState"></param>

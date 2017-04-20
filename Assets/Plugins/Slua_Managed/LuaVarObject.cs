@@ -197,6 +197,14 @@ namespace SLua
         }
 
 
+        /// <summary>
+        /// Two parameter, t,k
+        /// 這個類用於在沒有導出lua接口的時候使用，效率不好，因爲使用了反射
+        /// 當使用一個String來訪問時，可以訪問是一個Dictionary<string,T>, 或者是對象的方法，屬性，字段
+        /// Note:這個函數假定table在stack的1位置，key在2位置
+        /// </summary>
+        /// <param name="l"></param>
+        /// <returns>TODO, 返回值表示向棧上壓入元素的個數，在哪裏使用這個信息呢？</returns>
         [MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
         static public int luaIndex(IntPtr l)
         {
@@ -247,12 +255,12 @@ namespace SLua
 
         /// <summary>
         /// 根据self的类型来获取key所对应的值
-        /// 支持方法、属性、字段
+        /// 支持方法、属性、字段, 不支持Event
         /// /// </summary>
         /// <param name="l"></param>
         /// <param name="self"></param>
         /// <param name="key"></param>
-        /// <returns></returns>
+        /// <returns>TODO,返回值表示向棧上壓入元素的個數，在哪裏使用這個信息呢？</returns>
         static int indexString(IntPtr l, object self, string key)
         {
             Type t = getType(self);
@@ -352,6 +360,13 @@ namespace SLua
             return cache[key];
         }
 
+        /// <summary>
+        /// TODO, 這裏的返回值
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="self"></param>
+        /// <param name="key"></param>
+        /// <returns></returns>
         static int newindexString(IntPtr l, object self, string key)
         {
             if (self is IDictionary)
@@ -430,6 +445,7 @@ namespace SLua
                     dictKey = changeType(dictKey, keyType); // if key is not int but ushort/uint,  IDictionary will cannot find the key and return null!
                 }
 
+                //TODO, 爲啥要多一個true ？？
                 pushValue(l, true);
                 pushVar(l, dict[dictKey]);
                 return 2;
@@ -484,6 +500,12 @@ namespace SLua
             return ok(l);
         }
 
+        /// <summary>
+        /// three parameter, t,k,v
+        /// TODO,return value 1 express what??
+        /// </summary>
+        /// <param name="l"></param>
+        /// <returns></returns>
         [MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
         static public int luaNewIndex(IntPtr l)
         {
