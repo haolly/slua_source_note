@@ -331,12 +331,23 @@ namespace SLua
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern int lua_yield(IntPtr L, int nresults);
 
+        /// <summary>
+        /// get value from global table
+        /// </summary>
+        /// <param name="luaState"></param>
+        /// <param name="name"></param>
         public static void lua_getglobal(IntPtr luaState, string name)
         {
             LuaDLL.lua_pushstring(luaState, name);
             LuaDLL.lua_gettable(luaState, LuaIndexes.LUA_GLOBALSINDEX);
         }
 
+        /// <summary>
+        /// 前提是先将value压入栈中
+        /// 设置 global 表中,t[name] = value
+        /// </summary>
+        /// <param name="luaState"></param>
+        /// <param name="name"></param>
         public static void lua_setglobal(IntPtr luaState, string name)
         {
             LuaDLL.lua_pushstring(luaState, name);
@@ -344,6 +355,10 @@ namespace SLua
             LuaDLL.lua_settable(luaState, LuaIndexes.LUA_GLOBALSINDEX);
         }
 
+        /// <summary>
+        /// push a copy of global table into the stack
+        /// </summary>
+        /// <param name="l"></param>
         public static void lua_pushglobaltable(IntPtr l)
         {
             LuaDLL.lua_pushvalue(l, LuaIndexes.LUA_GLOBALSINDEX);
@@ -375,7 +390,7 @@ namespace SLua
         public static extern int lua_tointeger(IntPtr luaState, int index);
 
         /// <summary>
-        /// todo
+        /// loads the buffer without running it, push the trunk as a lua function at the top of stack
         /// </summary>
         /// <param name="luaState"></param>
         /// <param name="buff"></param>

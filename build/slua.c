@@ -108,6 +108,7 @@ LUA_API void luaS_openextlibs(lua_State *L) {
 #endif
 }
 
+//create a userdata represent a value of int
 LUA_API void luaS_newuserdata(lua_State *L, int val)
 {
 	int* pointer = (int*)lua_newuserdata(L, sizeof(int));
@@ -135,7 +136,7 @@ LUA_API int luaS_rawnetobj(lua_State *L, int index)
 	}
 
 	ud = lua_touserdata(L, index);
-	return (ud != NULL)?*ud:-1;
+	return (ud != NULL) ? *ud : -1;
 }
 
 LUA_API void luaS_pushuserdata(lua_State *L, void* ptr)

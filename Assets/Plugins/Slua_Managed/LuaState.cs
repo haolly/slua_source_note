@@ -566,7 +566,7 @@ namespace SLua
 
 			refQueue = new Queue<UnrefPair>();
 			ObjectCache.make(L);
-
+			//lua作爲host的時候設置錯誤處理函數
 			LuaDLL.lua_atpanic(L, panicCallback);
 
 			LuaDLL.luaL_openlibs(L);
@@ -620,6 +620,7 @@ end
 ";
 
 			// overload resume function for report error
+			// TODO, not save the result, how to use it ??
 			LuaState.get(L).doString(resumefunc);
 
 #if UNITY_ANDROID
@@ -650,6 +651,7 @@ end
 				LuaDLL.lua_rawgeti(L, loaderTable, e - 1);
 				LuaDLL.lua_rawseti(L, loaderTable, e);
 			}
+			//put customer loader at the first position of loaderTable
 			LuaDLL.lua_pushvalue(L, loaderFunc);
 			LuaDLL.lua_rawseti(L, loaderTable, 2);
 			LuaDLL.lua_settop(L, 0);
@@ -716,6 +718,11 @@ end
             return 0;
 		}
 
+        /// <summary>
+        /// 导入文件，a.b.c 将 c 中的所有 key,value 导入到 global table 中
+        /// </summary>
+        /// <param name="l"></param>
+        /// <returns></returns>
 		[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
 		internal static int import(IntPtr l)
 		{
@@ -726,6 +733,8 @@ end
 
 				string[] ns = str.Split('.');
 
+                //start from global table, find the latest part of the name
+				//the later is included in the former
 				LuaDLL.lua_pushglobaltable(l);
 
 				for (int n = 0; n < ns.Length; n++)
@@ -738,6 +747,8 @@ end
 					LuaDLL.lua_remove(l, -2);
 				}
 
+                //travers the table and check whether the key is exit in the global table
+				//if not, set the key associate the vaue in the global table
 				LuaDLL.lua_pushnil(l);
 				while (LuaDLL.lua_next(l, -2) != 0)
 				{
@@ -851,9 +862,9 @@ end
 					string fileName = LuaDLL.lua_tostring(L, 1);
 					return LuaObject.error(L, "Can't find {0}", fileName);
 				}
-				int k = LuaDLL.lua_gettop(L);
+				LuaDLL.lua_gettop(L);
 				LuaDLL.lua_call(L, 0, LuaDLL.LUA_MULTRET);
-				k = LuaDLL.lua_gettop(L);
+				int k = LuaDLL.lua_gettop(L);
 				return k - n;
 			}
 		}
@@ -866,7 +877,7 @@ end
 		}
 
         /// <summary>
-        /// push a wraped LuaCSFunction
+        /// push a wraped LuaCSFunction(ie cFunction)
         /// </summary>
         /// <param name="L"></param>
         /// <param name="function"></param>
@@ -898,6 +909,11 @@ end
 			return null; ;
 		}
 
+        /// <summary>
+        /// 按照文件名 load 文件内容，成功在栈上返回 true + trunk function
+        /// </summary>
+        /// <param name="L"></param>
+        /// <returns></returns>
 		[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
 		internal static int loader(IntPtr L)
 		{
@@ -953,6 +969,13 @@ end
             return bytes;
 	    }
 
+		/// <summary>
+		/// load and pcall the trunk
+		/// </summary>
+		/// <param name="bytes"></param>
+		/// <param name="fn"></param>
+		/// <param name="ret"></param>
+		/// <returns></returns>
 		public bool doBuffer(byte[] bytes, string fn, out object ret)
         {        
             // ensure no utf-8 bom, LuaJIT can read BOM, but Lua cannot!
@@ -963,7 +986,7 @@ end
 			{
 				if (LuaDLL.lua_pcall(L, 0, LuaDLL.LUA_MULTRET, errfunc) != 0)
 				{
-                    //first is errorFunc, second is the func
+                    //first is errorFunc, second is the error object
 					LuaDLL.lua_pop(L, 2);
 					return false;
 				}
@@ -972,10 +995,17 @@ end
 				return true;
 			}
 			string err = LuaDLL.lua_tostring(L, -1);
+			// first is the errorFunc, second is error msg
 			LuaDLL.lua_pop(L, 2);
 			throw new Exception(err);
 		}
 
+        /// <summary>
+        /// TODO， loader 在 lua 中的使用 ???
+		/// require 机制
+        /// </summary>
+        /// <param name="fn"></param>
+        /// <returns></returns>
 		internal static byte[] loadFile(string fn)
 		{
 			try

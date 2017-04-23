@@ -104,7 +104,7 @@ namespace SLua
 
 		public static void init(IntPtr l)
 		{
-			///這裏的潛規則,h[2] 是什麼？應該是一個Set函數
+			///TODO 這裏的潛規則,h[2] 是什麼？應該是一個Set函數
 			/// <summary>
 			/// 獲取當前ud 的元表，從元表中獲取k所對應的值，如果沒有，則去__parent中去找，如果有，h[2]應該是一個Set函數
 			/// </summary>
@@ -1110,6 +1110,7 @@ return index
 			LuaDLL.lua_pop(l, 1); // pop __LuaDelegate
 		}
 
+        //TODO
 		static public object checkObj(IntPtr l, int p)
 		{
 			ObjectCache oc = ObjectCache.get(l);
@@ -1258,7 +1259,7 @@ return index
         }
 
         /// <summary>
-        /// 根据p的类型，返回相应的数据
+        /// 根据p在 lua 中的类型，返回相应的c# 数据类型
         /// </summary>
         /// <param name="l"></param>
         /// <param name="p"></param>

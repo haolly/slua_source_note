@@ -42,7 +42,7 @@ namespace SLua
 		static internal ObjectCache oldoc = null;
 
         /// <summary>
-        /// 從緩存中查找 l對應的緩存字典，如果沒有，就從__main_state 所對應的緩存中去找
+        /// 從緩存中查找 **l** 對應的緩存字典，如果沒有，就從__main_state 所對應的緩存中去找
         /// </summary>
         /// <param name="l"></param>
         /// <returns></returns>
@@ -266,7 +266,7 @@ namespace SLua
 
 		internal object get(IntPtr l, int p)
 		{
-
+			//TODO, 为啥这里返回值是 index ??
 			int index = LuaDLL.luaS_rawnetobj(l, p);
 			object o;
 			if (index != -1 && cache.get(index, out o))
