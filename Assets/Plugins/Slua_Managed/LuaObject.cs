@@ -258,6 +258,9 @@ return index
 		}
 		#endregion
 
+        /// <summary>
+        /// 设置各种类型对对应的push函数，这个push函数能将正确的对象压入栈中
+        /// </summary>
 		static void setupPushVar()
 		{
 			typePushMap[typeof(float)] = (IntPtr L, object o) =>
@@ -1081,6 +1084,13 @@ return index
 			return true;
 		}
 
+        /// <summary>
+        /// <see LuaDLL.luaS_checkluatype>
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="p"></param>
+        /// <param name="t"></param>
+        /// <returns></returns>
 		static public bool luaTypeCheck(IntPtr l, int p, string t)
 		{
 			return LuaDLL.luaS_checkluatype(l, p, t) != 0;
@@ -1110,7 +1120,12 @@ return index
 			LuaDLL.lua_pop(l, 1); // pop __LuaDelegate
 		}
 
-        //TODO
+        /// <summary>
+        /// Get the element in the stack position of p, which **must*× is a userData, otherwise, return null
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="p"></param>
+        /// <returns></returns>
 		static public object checkObj(IntPtr l, int p)
 		{
 			ObjectCache oc = ObjectCache.get(l);

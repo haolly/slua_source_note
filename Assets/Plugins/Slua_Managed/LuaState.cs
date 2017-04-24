@@ -1,17 +1,17 @@
 ﻿// The MIT License (MIT)
 
 // Copyright 2015 Siney/Pangweiwei siney@yeah.net
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -181,6 +181,9 @@ namespace SLua
 
 	}
 
+    /// <summary>
+    /// 这个类和MulticastDelegate 都可以表示一个LUA_TFUNCTION
+    /// </summary>
 	public class LuaFunction : LuaVar
 	{
 		public LuaFunction(LuaState l, int r)
@@ -305,7 +308,7 @@ namespace SLua
 
 		// you can add call method with specific type rather than object type to avoid gc alloc, like
 		// public object call(int a1,float a2,string a3,object a4)
-		
+
 		// using specific type to avoid type boxing/unboxing
 	}
 
@@ -977,7 +980,7 @@ end
 		/// <param name="ret"></param>
 		/// <returns></returns>
 		public bool doBuffer(byte[] bytes, string fn, out object ret)
-        {        
+        {
             // ensure no utf-8 bom, LuaJIT can read BOM, but Lua cannot!
 		    bytes = CleanUTF8Bom(bytes);
             ret = null;

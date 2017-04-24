@@ -735,6 +735,14 @@ namespace SLua
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern void luaS_setDataVec(IntPtr l, int p, float x, float y, float z, float w);
 
+        /// <summary>
+        /// 是一个table，并且有metatable，metatable[__typename] == t 如果t != null
+        /// 返回1 表示true， 0表示FALSE
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="p"></param>
+        /// <param name="t"></param>
+        /// <returns></returns>
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern int luaS_checkluatype(IntPtr l, int p, string t);
 

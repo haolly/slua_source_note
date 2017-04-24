@@ -1,17 +1,17 @@
 // The MIT License (MIT)
 
 // Copyright 2015 Siney/Pangweiwei siney@yeah.net
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -179,7 +179,7 @@ static void getmetatable(lua_State *L, const char* key) {
 static void setmetatable(lua_State *L, int p, int what) {
 
 	int ref;
-	
+
 #if LUA_VERSION_NUM>=503
 	lua_pushglobaltable(L);
 	lua_rawgeti(L, -1, what);
@@ -234,6 +234,7 @@ static void setmetatable(lua_State *L, int p, int what) {
 
 
 //是一个table，并且有metatable，metatable[__typename] == t 如果t != null
+//返回1 表示true， 0表示FALSE
 LUA_API int luaS_checkluatype(lua_State *L, int p, const char *t) {
 	int top;
 	const char* b;

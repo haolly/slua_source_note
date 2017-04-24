@@ -49,6 +49,14 @@ namespace SLua
                 this.mis = mi;
             }
 
+            /// <summary>
+            /// 判断lt 和 t 类型是否兼容
+            /// </summary>
+            /// <param name="l"></param>
+            /// <param name="p"></param>
+            /// <param name="lt"> p 所在位置元素的类型, 一个LuaType</param>
+            /// <param name="t">比较类型，一个C#类型</param>
+            /// <returns></returns>
             bool matchType(IntPtr l, int p, LuaTypes lt, Type t)
             {
                 if (t.IsPrimitive && t != typeof(bool))
@@ -118,6 +126,14 @@ namespace SLua
                 return null;
             }
 
+            /// <summary>
+            /// judge the type of element in the stack from position **from** to the top of the stack is compatible with all parameter types
+            /// </summary>
+            /// <param name="l"></param>
+            /// <param name="from"></param>
+            /// <param name="pis"></param>
+            /// <param name="isstatic"></param>
+            /// <returns></returns>
             internal bool matchType(IntPtr l, int from, ParameterInfo[] pis, bool isstatic)
             {
                 int top = LuaDLL.lua_gettop(l);
@@ -141,6 +157,7 @@ namespace SLua
                 for (int k = 0; k < mis.Count; k++)
                 {
                     MethodInfo m = (MethodInfo)mis[k];
+                    //TODO , why start from 2 ??
                     if (matchType(l, 2, m.GetParameters(), m.IsStatic))
                     {
                         return forceInvoke(l, m);
