@@ -1,17 +1,17 @@
 ﻿// The MIT License (MIT)
 
 // Copyright 2015 Siney/Pangweiwei siney@yeah.net
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -20,9 +20,9 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-// uncomment this will use static binder(class BindCustom/BindUnity), 
+// uncomment this will use static binder(class BindCustom/BindUnity),
 // init will not use reflection to speed up the speed
-//#define USE_STATIC_BINDER  
+//#define USE_STATIC_BINDER
 
 namespace SLua
 {
@@ -42,7 +42,7 @@ namespace SLua
 		LSF_3RDDLL = 2
 	};
 
-	public class LuaSvr 
+	public class LuaSvr
 	{
 		public LuaState luaState;
 		#if !SLUA_STANDALONE
@@ -57,6 +57,10 @@ namespace SLua
 			this.luaState = luaState;
 		}
 
+		/// <summary>
+        ///收集所有需要导出的类的reg方法
+		/// </summary>
+		/// <returns></returns>
 		List<Action<IntPtr>> collectBindInfo() {
 
 			List<Action<IntPtr>> list = new List<Action<IntPtr>>();
@@ -116,6 +120,10 @@ namespace SLua
 		}
 
 
+        /// <summary>
+        /// bind all exported class
+        /// </summary>
+        /// <param name="L"></param>
 		protected void doBind(IntPtr L)
 		{
 			var list = collectBindInfo ();

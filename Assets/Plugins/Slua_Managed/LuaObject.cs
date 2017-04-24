@@ -163,7 +163,7 @@ end
 return index
 ";
 			LuaState L = LuaState.get(l);
-			//TODO, 怎麼可以直接強制轉換呢？
+			//doString返回一个LUA_TFUNCTION,在C#中对应的类型是LuaFunction, see function toObjects()
 			newindex_func = (LuaFunction)L.doString(newindexfun);
 			index_func = (LuaFunction)L.doString(indexfun);
 
@@ -531,6 +531,11 @@ return index
 			newTypeTable(l, t);
 		}
 
+        /// <summary>
+        /// TODO, netTypeTable中已经创建了类所对应的table,为啥还要再创建一个instance 的table ??
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="t"></param>
 		public static void getTypeTable(IntPtr l, string t)
 		{
 			newTypeTable(l, t);
@@ -540,6 +545,12 @@ return index
 			LuaDLL.lua_newtable(l);
 		}
 
+		/// <summary>
+		/// 从globalTable开始查找,如果没有找到相应的nameSpace或者class所对应的table，就创建一个，将其附加在父table上面
+		/// 例如a.b.c 回去检查a，b，c这三个table的存在
+		/// /// </summary>
+		/// <param name="l"></param>
+		/// <param name="name"></param>
 		public static void newTypeTable(IntPtr l, string name)
 		{
 			string[] subt = name.Split('.');
@@ -567,9 +578,9 @@ return index
 			createTypeMetatable(l, null, self, null);
 		}
 
-		public static void createTypeMetatable(IntPtr l, LuaCSFunction con, Type self)
+		public static void createTypeMetatable(IntPtr l, LuaCSFunction constractor, Type self)
 		{
-			createTypeMetatable(l, con, self, null);
+			createTypeMetatable(l, constractor, self, null);
 		}
 
         static void checkMethodValid(LuaCSFunction f)
@@ -718,10 +729,10 @@ return index
 		}
 
         /// <summary>
-		/// TODO
+		/// set field func.Method.Name associate the function in the table
         /// 這裏的潛規則是,已經將tab壓入棧中
-		/// TODO, -2 和 -3 位置是怎麼確定的？
-        /// </summary>
+		/// 以_s结尾的函数是static的函数, 会放入和instance 函数不一样的table中
+  		/// /// </summary>
         /// <param name="l"></param>
         /// <param name="func"></param>
 		protected static void addMember(IntPtr l, LuaCSFunction func)
@@ -748,6 +759,14 @@ return index
 			LuaDLL.lua_setfield(l, instance ? -2 : -3, name);
 		}
 
+        /// <summary>
+        /// 主要用于Get和Set函数，将Get和Set函数放入一个table中，然后将这个包含get、set的table设置为字段
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="name"></param>
+        /// <param name="get"></param>
+        /// <param name="set"></param>
+        /// <param name="instance"></param>
 		protected static void addMember(IntPtr l, string name, LuaCSFunction get, LuaCSFunction set, bool instance)
 		{
             checkMethodValid(get);
