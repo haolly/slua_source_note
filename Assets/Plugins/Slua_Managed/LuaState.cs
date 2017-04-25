@@ -98,8 +98,8 @@ namespace SLua
 		}
 
         /// <summary>
-        /// push the object in register to stack
-        /// 將這個對象在register 中的索引 ref所對應的object軋入斬中,
+        /// push self object ref in register to stack
+        /// 將這個對象在register 中的索引ref 軋入斬中,
         /// == get_ref
         /// </summary>
         /// <param name="l"></param>
@@ -183,7 +183,10 @@ namespace SLua
 
     /// <summary>
     /// 这个类和MulticastDelegate 都可以表示一个LUA_TFUNCTION
-    /// </summary>
+	/// 这里的call 函数如果参数个数不匹配的话是要产生gc alloc的
+	/// 类型不对的话也会有gc(box/unbox)
+	/// <see https://github.com/pangweiwei/slua/wiki/%E5%85%B3%E4%BA%8ELuaFunction.call%E7%9A%84%E4%BC%98%E5%8C%96>
+ 	/// </summary>
 	public class LuaFunction : LuaVar
 	{
 		public LuaFunction(LuaState l, int r)
@@ -236,7 +239,7 @@ namespace SLua
 			return ret;
 		}
 
-
+#region call
 		public object call()
 		{
 			int error = LuaObject.pushTry(state.L);
@@ -310,6 +313,7 @@ namespace SLua
 		// public object call(int a1,float a2,string a3,object a4)
 
 		// using specific type to avoid type boxing/unboxing
+#endregion
 	}
 
 	public class LuaTable : LuaVar, IEnumerable<LuaTable.TablePair>
@@ -506,6 +510,10 @@ namespace SLua
 		public delegate byte[] LoaderDelegate(string fn);
 		public delegate void OutputDelegate(string msg);
 
+        /// <summary>
+        /// 通过使用这个代理可以控制lua文件的加载方式
+		/// 默认是从Resources目录加载的，如果是通过动态下载AssetBundle，需要自己实现
+        /// /// </summary>
 		static public LoaderDelegate loaderDelegate;
 		static public OutputDelegate logDelegate;
 		static public OutputDelegate errorDelegate;

@@ -344,7 +344,7 @@ namespace SLua
 
         /// <summary>
         /// 前提是先将value压入栈中
-        /// 设置 global 表中,t[name] = value
+        /// 设置 global 表中,t[name] =value
         /// </summary>
         /// <param name="luaState"></param>
         /// <param name="name"></param>
@@ -617,6 +617,11 @@ namespace SLua
         public static extern int luaL_newmetatable(IntPtr luaState, string meta);
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern void lua_getfield(IntPtr luaState, int stackPos, string meta);
+        /// <summary>
+        /// 获取register中的meta对应的元素
+        /// </summary>
+        /// <param name="luaState"></param>
+        /// <param name="meta"></param>
         public static void luaL_getmetatable(IntPtr luaState, string meta)
         {
             LuaDLL.lua_getfield(luaState, LuaIndexes.LUA_REGISTRYINDEX, meta);

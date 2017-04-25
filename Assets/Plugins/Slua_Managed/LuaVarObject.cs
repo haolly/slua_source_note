@@ -219,6 +219,8 @@ namespace SLua
         /// 這個類用於在沒有導出lua接口的時候使用，效率不好，因爲使用了反射
         /// 當使用一個String來訪問時，可以訪問是一個Dictionary<string,T>, 或者是對象的方法，屬性，字段
         /// Note:這個函數假定table在stack的1位置，key在2位置
+        /// Note:不能访问没有导出的父类的成员、属性、字段等 TODO: FIXME:
+        /// BUG: 导出List<int> 后，就不能用下表来访问了,必须要用GetItem函数
         /// </summary>
         /// <param name="l"></param>
         /// <returns>TODO, 返回值表示向棧上壓入元素的個數，在哪裏使用這個信息呢？</returns>

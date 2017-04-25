@@ -532,7 +532,7 @@ return index
 		}
 
         /// <summary>
-        /// TODO, netTypeTable中已经创建了类所对应的table,为啥还要再创建一个instance 的table ??
+        /// TODO, newTypeTable中已经创建了类所对应的table,为啥还要再创建一个instance 的table ??
         /// </summary>
         /// <param name="l"></param>
         /// <param name="t"></param>
@@ -593,15 +593,27 @@ return index
 #endif
         }
 
-		public static void createTypeMetatable(IntPtr l, LuaCSFunction con, Type self, Type parent)
+        /// <summary>
+        /// -1 is instance table
+		/// -2 is static table
+		/// 设置instance table 和 static table 的一些方法，分别将其注册到register table中
+  		/// </summary>
+        /// <param name="l"></param>
+        /// <param name="constractor"></param>
+        /// <param name="self"></param>
+        /// <param name="parent"></param>
+		public static void createTypeMetatable(IntPtr l, LuaCSFunction constractor, Type self, Type parent)
 		{
-			checkMethodValid(con);
+			checkMethodValid(constractor);
 
 			// set parent
 			bool parentSet = false;
 			LuaDLL.lua_pushstring(l, "__parent");
 			while (parent != null && parent != typeof(object) && parent != typeof(ValueType))
 			{
+                // GetParent definition
+				// why in global table?
+				// cause every type will be register in global table with their QualifiedName
 				LuaDLL.luaL_getmetatable(l, ObjectCache.getAQName(parent));
 				// if parentType is not exported to lua
 				if (LuaDLL.lua_isnil(l, -1))
@@ -611,8 +623,11 @@ return index
 				}
 				else
 				{
+					//set __parent field to the finded parent table in instance table
 					LuaDLL.lua_rawset(l, -3);
 
+					//set __parent field in static table
+					//each type will register itself with fullname in register
 					LuaDLL.lua_pushstring(l, "__parent");
 					LuaDLL.luaL_getmetatable(l, parent.FullName);
 					LuaDLL.lua_rawset(l, -4);
@@ -622,6 +637,7 @@ return index
 				}
 			}
 
+			//如果没有父类，设置全局表中的__luabaseobject(created in init() ) 为__parent, in instance table
 			if(!parentSet)
 			{
 				LuaDLL.luaL_getmetatable(l, "__luabaseobject");
@@ -629,11 +645,18 @@ return index
 			}
 
 			completeInstanceMeta(l, self);
-			completeTypeMeta(l, con, self);
+			completeTypeMeta(l, constractor, self);
 
-			LuaDLL.lua_pop(l, 1); // pop type Table
+			LuaDLL.lua_pop(l, 1); // pop type Table(static table)
 		}
 
+        /// <summary>
+        /// -1 is static table
+		/// 和createInstanceMeta类似analogy
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="con"></param>
+        /// <param name="self"></param>
 		static void completeTypeMeta(IntPtr l, LuaCSFunction con, Type self)
 		{
 
@@ -660,6 +683,14 @@ return index
 			LuaDLL.lua_setfield(l, LuaIndexes.LUA_REGISTRYINDEX, self.FullName);
 		}
 
+        /// <summary>
+        /// -1 is instance table
+		/// -2 is static table
+		/// 设置__typename 和__index/__newindex 方法到instance table 中，还有一些基本的加减乘除大小比较函数
+		/// 然后将这个type的 instance table 以QAName注册到register中
+  		/// </summary>
+        /// <param name="l"></param>
+        /// <param name="self"></param>
 		private static void completeInstanceMeta(IntPtr l, Type self)
 		{
 			LuaDLL.lua_pushstring(l, "__typename");
@@ -700,6 +731,7 @@ return index
 				LuaDLL.lua_pushvalue(l, -1);
                 LuaDLL.lua_setglobal(l, self.FullName + ".Instance");
 			}
+			//set instance table in register
 			LuaDLL.lua_setfield(l, LuaIndexes.LUA_REGISTRYINDEX,  ObjectCache.getAQName(self));
 		}
 

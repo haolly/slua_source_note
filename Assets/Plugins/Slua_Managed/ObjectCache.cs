@@ -328,6 +328,12 @@ namespace SLua
 			return index;
 		}
 
+        /// <summary>
+        /// TODO: 这里可以检查一个类是否导出了lua接口
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="o"></param>
+        /// <param name="checkReflect"></param>
 		internal void push(IntPtr l, object o, bool checkReflect)
 		{
 
