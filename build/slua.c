@@ -135,6 +135,7 @@ LUA_API int luaS_rawnetobj(lua_State *L, int index)
 			return -1;
 	}
 
+    //NOTE: lua_touserdata return the pointer of pointer
 	ud = lua_touserdata(L, index);
 	return (ud != NULL) ? *ud : -1;
 }

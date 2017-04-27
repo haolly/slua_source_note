@@ -43,6 +43,7 @@ namespace SLua
 
         /// <summary>
         /// 從緩存中查找 **l** 對應的緩存字典，如果沒有，就從__main_state 所對應的緩存中去找
+		/// 如果还没有，返回null
         /// </summary>
         /// <param name="l"></param>
         /// <returns></returns>
@@ -180,10 +181,13 @@ namespace SLua
 #endif
 
         /// <summary>
-		/// TODO
-        /// cache the userData in this LuaState ??
+		/// All cached object
         /// </summary>
 		FreeList cache = new FreeList();
+
+        //all cached object which can be gc collected
+		Dictionary<object, int> objMap = new Dictionary<object, int>(new ObjEqualityComparer());
+		int udCacheRef = 0;
         public class ObjEqualityComparer : IEqualityComparer<object>
         {
             public new bool Equals(object x, object y)
@@ -197,10 +201,6 @@ namespace SLua
                 return RuntimeHelpers.GetHashCode(obj);
             }
         }
-
-		Dictionary<object, int> objMap = new Dictionary<object, int>(new ObjEqualityComparer());
-		int udCacheRef = 0;
-
 
 		public ObjectCache(IntPtr l)
 		{
@@ -225,6 +225,10 @@ namespace SLua
 			multiState.Remove(l);
 		}
 
+        /// <summary>
+        /// make a ObjectCache associate with the luaState
+        /// </summary>
+        /// <param name="l"></param>
 		internal static void make(IntPtr l)
 		{
 			ObjectCache oc = new ObjectCache(l);
@@ -270,7 +274,7 @@ namespace SLua
 
 		internal object get(IntPtr l, int p)
 		{
-			//TODO, 为啥这里返回值是 index ??
+			//TODO:, 为啥这里返回值是 index ??
 			int index = LuaDLL.luaS_rawnetobj(l, p);
 			object o;
 			if (index != -1 && cache.get(index, out o))

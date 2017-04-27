@@ -104,7 +104,7 @@ namespace SLua
 
 		public static void init(IntPtr l)
 		{
-			///TODO 這裏的潛規則,h[2] 是什麼？應該是一個Set函數
+			///TODO: 這裏的潛規則,h[2] 是什麼？應該是一個Set函數
 			/// <summary>
 			/// 獲取當前ud 的元表，從元表中獲取k所對應的值，如果沒有，則去__parent中去找，如果有，h[2]應該是一個Set函數
 			/// </summary>
@@ -135,6 +135,7 @@ end
 return newindex
 ";
 
+            //TODO:
 			string indexfun = @"
 local type=type
 local error=error
@@ -370,6 +371,13 @@ return index
 			};
 		}
 
+        /// <summary>
+        /// recursive get field f in table(which must have a metatable)
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="f"></param>
+        /// <param name="tip"></param>
+        /// <returns></returns>
 		static int getOpFunction(IntPtr l, string f, string tip)
 		{
 			int err = pushTry(l);
@@ -402,7 +410,10 @@ return index
 			LuaDLL.lua_pushvalue(l, 1);
 			LuaDLL.lua_pushvalue(l, 2);
 			if (LuaDLL.lua_pcall(l, 2, 1, err) != 0)
+			{
+				//pop error msg
 				LuaDLL.lua_pop(l, 1);
+			}
 			LuaDLL.lua_remove(l, err);
 			pushValue(l, true);
 			LuaDLL.lua_insert(l, -2);
@@ -532,7 +543,7 @@ return index
 		}
 
         /// <summary>
-        /// TODO, newTypeTable中已经创建了类所对应的table,为啥还要再创建一个instance 的table ??
+        /// TODO: newTypeTable中已经创建了类所对应的table,为啥还要再创建一个instance 的table ??
         /// </summary>
         /// <param name="l"></param>
         /// <param name="t"></param>
@@ -547,7 +558,7 @@ return index
 
 		/// <summary>
 		/// 从globalTable开始查找,如果没有找到相应的nameSpace或者class所对应的table，就创建一个，将其附加在父table上面
-		/// 例如a.b.c 回去检查a，b，c这三个table的存在
+		/// 例如a.b.c 回去检查a，b，c这三个table的存在, left c table in the stack
 		/// /// </summary>
 		/// <param name="l"></param>
 		/// <param name="name"></param>
@@ -597,6 +608,8 @@ return index
         /// -1 is instance table
 		/// -2 is static table
 		/// 设置instance table 和 static table 的一些方法，分别将其注册到register table中
+		/// register instance and static table to the register table, set self table's __fullname,
+		/// set self's metable is static table
   		/// </summary>
         /// <param name="l"></param>
         /// <param name="constractor"></param>
@@ -653,13 +666,16 @@ return index
         /// <summary>
         /// -1 is static table
 		/// 和createInstanceMeta类似analogy
-        /// </summary>
+		/// __fullname is in self table, __typename is in instance table, __parent is in instance table
+		/// register the static table to the register with the name of self.fullName,
+		/// set self's metatable is the static table
+ 		/// </summary>
         /// <param name="l"></param>
         /// <param name="con"></param>
         /// <param name="self"></param>
 		static void completeTypeMeta(IntPtr l, LuaCSFunction con, Type self)
 		{
-
+			//set __fullname in self table
 			LuaDLL.lua_pushstring(l, ObjectCache.getAQName(self));
 			LuaDLL.lua_setfield(l, -3, "__fullname");
 
@@ -677,6 +693,7 @@ return index
 			LuaDLL.lua_pushcfunction(l, typeToString);
 			LuaDLL.lua_setfield(l, -2, "__tostring");
 
+			//set self's metatable is the static table
 			LuaDLL.lua_pushvalue(l, -1);
 			LuaDLL.lua_setmetatable(l, -3);
 
@@ -851,6 +868,11 @@ return index
         }
 #endif
 
+        /// <summary>
+        /// check whether the element at position p has metatable
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="p"></param>
 		static public void checkLuaObject(IntPtr l, int p)
 		{
 			LuaDLL.lua_getmetatable(l, p);
@@ -963,6 +985,12 @@ return index
 			return false;
 		}
 
+        /// <summary>
+        /// if this table has __fullname field, return true, which is set when create the represent of new c# clas's slua table
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="p"></param>
+        /// <returns></returns>
 		public static bool isTypeTable(IntPtr l, int p)
 		{
 			if (LuaDLL.lua_type(l, p) != LuaTypes.LUA_TTABLE)

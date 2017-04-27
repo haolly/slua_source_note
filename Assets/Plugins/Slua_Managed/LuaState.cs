@@ -530,6 +530,7 @@ namespace SLua
 
 
 		public static LuaState main;
+        //Global map, store all LuaState, map IntPtr 2 LuaState(c# class)
 		static Dictionary<IntPtr, LuaState> statemap = new Dictionary<IntPtr, LuaState>();
 		static IntPtr oldptr = IntPtr.Zero;
 		static LuaState oldstate = null;
@@ -540,6 +541,11 @@ namespace SLua
 			return System.Threading.Thread.CurrentThread.ManagedThreadId == mainThread;
 		}
 
+        /// <summary>
+        /// analogy to ObjectCache.get, 只不过获取的不是ObjectCache, 而是LuaState
+        /// </summary>
+        /// <param name="l"></param>
+        /// <returns></returns>
 		static public LuaState get(IntPtr l)
 		{
 			if (l == oldptr)
@@ -812,12 +818,18 @@ end
 			LuaDLL.lua_remove(l, err);
 		}
 
+        /// <summary>
+        /// lua中的print输出, 用自己的函数替换了原来的
+        /// </summary>
+        /// <param name="L"></param>
+        /// <returns></returns>
 		[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
 		internal static int print(IntPtr L)
 		{
 			int n = LuaDLL.lua_gettop(L);
 			string s = "";
 
+			//get lua function tostring
 			LuaDLL.lua_getglobal(L, "tostring");
 
 			for (int i = 1; i <= n; i++)

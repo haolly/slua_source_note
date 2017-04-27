@@ -332,7 +332,8 @@ namespace SLua
         public static extern int lua_yield(IntPtr L, int nresults);
 
         /// <summary>
-        /// get value from global table
+        /// get value from global table in this state
+        /// TODO: each luaState has a global table ??
         /// </summary>
         /// <param name="luaState"></param>
         /// <param name="name"></param>

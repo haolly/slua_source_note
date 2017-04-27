@@ -485,6 +485,13 @@ namespace SLua
 		}
 
 
+        /// <summary>
+        /// TODO:
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="p"></param>
+        /// <param name="t"></param>
+        /// <returns></returns>
 		static public bool checkType(IntPtr l, int p, out Type t)
 		{
 			string tname = null;
