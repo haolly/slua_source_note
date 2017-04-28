@@ -22,6 +22,10 @@
 
 
 using System.Runtime.CompilerServices;
+namespace LuaInterface
+{
+    public class TestClass { }
+}
 
 namespace SLua
 {
@@ -236,6 +240,11 @@ namespace SLua
 			oldl = l;
 			oldoc = oc;
 		}
+
+        public int size()
+        {
+            return objMap.Count;
+        }
 
         /// <summary>
         /// TODO: the index is the address of pointer, which is an unique int, where did it got set in this cache ?
