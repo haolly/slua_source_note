@@ -280,7 +280,7 @@ namespace SLua
 		}
 
         //This is where gc do works
-		void tick()
+		public void tick()
 		{
 			if (!inited)
 				return;
