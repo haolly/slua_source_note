@@ -10,7 +10,8 @@ namespace SLua
     /// </summary>
     public class Logger
     {
-        private static Object FindScriptByMsg(string msg)
+#if !SLUA_STANDALONE
+        private static UnityEngine.Object FindScriptByMsg(string msg)
         {
 #if UNITY_EDITOR
             int idx = msg.IndexOf(":");
@@ -31,8 +32,8 @@ namespace SLua
 #endif
             return null;
         }
+#endif
         public enum Level
-        {
             Debug,
             Warning,
             Error
