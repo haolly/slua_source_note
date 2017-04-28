@@ -21,6 +21,10 @@
 // THE SOFTWARE.
 
 using System.Runtime.CompilerServices;
+namespace LuaInterface
+{
+    public class TestClass { }
+}
 
 namespace SLua
 {
