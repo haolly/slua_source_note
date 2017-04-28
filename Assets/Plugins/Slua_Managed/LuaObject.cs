@@ -1361,15 +1361,17 @@ return index
                     return Enum.ToObject(t, number);
                 }
 
-                object convertObj;
-                if (t.IsInstanceOfType(obj))
-                {
-                    convertObj = obj; // if t is parent of obj, ignore change type
-                }
-                else
-                {
-                    convertObj = Convert.ChangeType(obj, t);
-                }
+				object convertObj = null;
+				if(obj!=null) {
+	                if (t.IsInstanceOfType(obj))
+	                {
+	                    convertObj = obj; // if t is parent of obj, ignore change type
+	                }
+	                else
+	                {
+	                    convertObj = Convert.ChangeType(obj, t);
+	                }
+				}
                 return obj == null ? null : convertObj;
             }
             catch(Exception e) {
