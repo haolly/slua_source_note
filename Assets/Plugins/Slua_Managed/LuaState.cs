@@ -33,6 +33,18 @@ namespace SLua
 #if !SLUA_STANDALONE
     using UnityEngine;
 #endif
+    /// <summary>
+    /// 异常信息1: System.AccessViolationException
+   	/// 在 LuaInterface.LuaDLL.luaL_ref(IntPtr, Int32)
+   	/// 在 SLua.LuaTable..ctor(SLua.LuaState)
+	/// 异常信息2: System.OutOfMemoryException
+ 	/// 在 System.Collections.Generic.Queue`1[[SLua.LuaState+UnrefPair, slua-standalone, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]].SetCapacity(Int32)
+ 	/// 在 System.Collections.Generic.Queue`1[[SLua.LuaState+UnrefPair, slua-standalone, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]].Enqueue(UnrefPair)
+ 	/// 在 SLua.LuaState.gcRef(UnRefAction, Int32)
+ 	/// 在 SLua.LuaVar.Dispose(Boolean)
+ 	/// 在 SLua.LuaVar.Finalize()
+
+    ///  </summary>
 	abstract public class LuaVar : IDisposable
 	{
 		protected LuaState state = null;
@@ -251,6 +263,12 @@ namespace SLua
 			return null;
 		}
 
+        /// <summary>
+        /// TODO: 这里传入的c#类型的参数是怎么回收的??
+		/// if the argument is a LuaTable ?? how to release the talbe ?
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
 		public object call(params object[] args)
 		{
 			int error = LuaObject.pushTry(state.L);
@@ -468,6 +486,9 @@ namespace SLua
 
 
 
+    /// <summary>
+    /// lua_State 的c# wrapper
+    /// </summary>
 	public class LuaState : IDisposable
 	{
 		IntPtr l_;
@@ -609,6 +630,11 @@ end
 			pcall(L, init);
 		}
 
+        /// <summary>
+        /// override or provide some lua base function
+        /// </summary>
+        /// <param name="L"></param>
+        /// <returns></returns>
 		[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
 		static int init(IntPtr L)
 		{
@@ -636,8 +662,7 @@ coroutine.resume=function(co,...)
 end
 ";
 
-			// overload resume function for report error
-			// TODO, not save the result, how to use it ??
+			// overload lua's coroutine.resume function to add additional report error
 			LuaState.get(L).doString(resumefunc);
 
 #if UNITY_ANDROID
@@ -791,6 +816,11 @@ end
 			}
 		}
 
+        /// <summary>
+        /// TODO: the implement is almost the same as the origin pcall in lua, so why override it?
+        /// </summary>
+        /// <param name="L"></param>
+        /// <returns></returns>
 		[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
 		internal static int pcall(IntPtr L)
 		{
@@ -934,7 +964,9 @@ end
 
         /// <summary>
         /// 按照文件名 load 文件内容，成功在栈上返回 true + trunk function
-        /// </summary>
+		/// same as lua loadfile
+		/// this is the first loader in loadertable(ie searcher)
+  		/// </summary>
         /// <param name="L"></param>
         /// <returns></returns>
 		[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
@@ -1024,7 +1056,7 @@ end
 		}
 
         /// <summary>
-        /// TODO， loader 在 lua 中的使用 ???
+        /// TODO:， loader 在 lua 中的使用 ???
 		/// require 机制
         /// </summary>
         /// <param name="fn"></param>

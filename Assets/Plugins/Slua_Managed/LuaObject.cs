@@ -104,10 +104,12 @@ namespace SLua
 
 		public static void init(IntPtr l)
 		{
-			///TODO: 這裏的潛規則,h[2] 是什麼？應該是一個Set函數
 			/// <summary>
+			/// h[1],h[2] is get and set function, see function AddMember
 			/// 獲取當前ud 的元表，從元表中獲取k所對應的值，如果沒有，則去__parent中去找，如果有，h[2]應該是一個Set函數
-			/// </summary>
+			/// TODO: 这里getmetatable获取的是一个static table, 难道只能不能设置instance table中的值 ??
+			/// <see createTypeMetatable>
+			/// /// </summary>
 			/// <returns></returns>
 			string newindexfun = @"
 
@@ -135,7 +137,10 @@ end
 return newindex
 ";
 
-            //TODO:
+			/// <summary>
+			/// analogy with newindex, NOTE: only get in static table ??
+			/// </summary>
+			/// <returns></returns>
 			string indexfun = @"
 local type=type
 local error=error
@@ -188,7 +193,7 @@ return index
 		#region Basic Object function
 
 		/// <summary>
-		/// TODO
+		/// TODO:
 		/// /// 爲什麼push多一個true ？？
 		/// </summary>
 		/// <param name="l"></param>
@@ -610,6 +615,8 @@ return index
 		/// 设置instance table 和 static table 的一些方法，分别将其注册到register table中
 		/// register instance and static table to the register table, set self table's __fullname,
 		/// set self's metable is static table
+		/// register the static table to the register with the name of self.fullName,
+		/// 然后将这个type的 instance table 以QAName注册到register中
   		/// </summary>
         /// <param name="l"></param>
         /// <param name="constractor"></param>
@@ -626,7 +633,7 @@ return index
 			{
                 // GetParent definition
 				// why in global table?
-				// cause every type will be register in global table with their QualifiedName
+				// cause every type's instance table will be register in global table with their QualifiedName
 				LuaDLL.luaL_getmetatable(l, ObjectCache.getAQName(parent));
 				// if parentType is not exported to lua
 				if (LuaDLL.lua_isnil(l, -1))
@@ -640,7 +647,7 @@ return index
 					LuaDLL.lua_rawset(l, -3);
 
 					//set __parent field in static table
-					//each type will register itself with fullname in register
+					//each type will register itself's static table with fullname in register
 					LuaDLL.lua_pushstring(l, "__parent");
 					LuaDLL.luaL_getmetatable(l, parent.FullName);
 					LuaDLL.lua_rawset(l, -4);
@@ -693,7 +700,7 @@ return index
 			LuaDLL.lua_pushcfunction(l, typeToString);
 			LuaDLL.lua_setfield(l, -2, "__tostring");
 
-			//set self's metatable is the static table
+			//set self's metatable is the static table, TODO: wtf, should be instance table, am I understand wrong?
 			LuaDLL.lua_pushvalue(l, -1);
 			LuaDLL.lua_setmetatable(l, -3);
 
@@ -799,6 +806,12 @@ return index
 				LuaDLL.lua_setfield(l, -2, name);
 		}
 
+        /// <summary>
+        /// 给type的table注册方法，分别在static table 或者 instance table 中
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="func"></param>
+        /// <param name="instance"></param>
 		protected static void addMember(IntPtr l, LuaCSFunction func, bool instance)
 		{
             checkMethodValid(func);
@@ -848,6 +861,7 @@ return index
 		[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
 		static public int luaGC(IntPtr l)
 		{
+            //NOTE: the index is the address of pointer, which is an unique int
 			int index = LuaDLL.luaS_rawnetobj(l, 1);
 			if (index > 0)
 			{

@@ -237,6 +237,10 @@ namespace SLua
 			oldoc = oc;
 		}
 
+        /// <summary>
+        /// TODO: the index is the address of pointer, which is an unique int, where did it got set in this cache ?
+        /// </summary>
+        /// <param name="index"></param>
 		internal void gc(int index)
 		{
 			object o;

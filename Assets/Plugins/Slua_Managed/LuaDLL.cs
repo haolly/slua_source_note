@@ -365,6 +365,11 @@ namespace SLua
             LuaDLL.lua_pushvalue(l, LuaIndexes.LUA_GLOBALSINDEX);
         }
 
+        /// <summary>
+        /// move the top into the given index
+        /// </summary>
+        /// <param name="luaState"></param>
+        /// <param name="newTop"></param>
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern void lua_insert(IntPtr luaState, int newTop);
 
@@ -392,7 +397,8 @@ namespace SLua
 
         /// <summary>
         /// loads the buffer without running it, push the trunk as a lua function at the top of stack
-        /// </summary>
+        /// same as the lua load function
+        /// /// </summary>
         /// <param name="luaState"></param>
         /// <param name="buff"></param>
         /// <param name="size"></param>
