@@ -279,6 +279,10 @@ namespace SLua
 			return null;
 		}
 
+		#if !SLUA_STANDALONE
+		public 
+		#endif
+		void tick()
         //This is where gc do works
 		public void tick()
 		{
