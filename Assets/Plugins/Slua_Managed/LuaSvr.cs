@@ -279,7 +279,10 @@ namespace SLua
 			return null;
 		}
 
-		public void tick()
+		#if !SLUA_STANDALONE
+		public 
+		#endif
+		void tick()
 		{
 			if (!inited)
 				return;
