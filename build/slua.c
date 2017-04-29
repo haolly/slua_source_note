@@ -85,6 +85,8 @@ static int lua_absindex(lua_State *L, int index) {
 
 
 
+//register ext libs in preload table, the open_xx is the loader
+//see lua manual require
 LUA_API void luaS_openextlibs(lua_State *L) {
 	const luaL_Reg *lib;
 

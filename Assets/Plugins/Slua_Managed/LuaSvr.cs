@@ -279,7 +279,7 @@ namespace SLua
 			return null;
 		}
 
-		#if !SLUA_STANDALONE
+        //This is where gc do works
 		void tick()
 		{
 			if (!inited)
@@ -292,8 +292,9 @@ namespace SLua
 			}
 
 			luaState.checkRef();
+			#if !SLUA_STANDALONE
 			LuaTimer.tick(Time.deltaTime);
+			#endif
 		}
-		#endif
 	}
 }

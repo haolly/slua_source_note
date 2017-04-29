@@ -693,7 +693,7 @@ end
 				LuaDLL.lua_rawgeti(L, loaderTable, e - 1);
 				LuaDLL.lua_rawseti(L, loaderTable, e);
 			}
-			//put customer loader at the first position of loaderTable
+			//put customer loader at the first position of loader table(in lua52+, which is searchers table)
 			LuaDLL.lua_pushvalue(L, loaderFunc);
 			LuaDLL.lua_rawseti(L, loaderTable, 2);
 			LuaDLL.lua_settop(L, 0);

@@ -107,7 +107,7 @@ namespace SLua
 			/// <summary>
 			/// h[1],h[2] is get and set function, see function AddMember
 			/// 獲取當前ud 的元表，從元表中獲取k所對應的值，如果沒有，則去__parent中去找，如果有，h[2]應該是一個Set函數
-			/// TODO: 这里getmetatable获取的是一个static table, 难道只能不能设置instance table中的值 ??
+			/// TODO: 这里getmetatable获取的是一个static table, 难道不能设置instance table中的值 ??
 			/// <see createTypeMetatable>
 			/// /// </summary>
 			/// <returns></returns>
@@ -549,6 +549,7 @@ return index
 
         /// <summary>
         /// TODO: newTypeTable中已经创建了类所对应的table,为啥还要再创建一个instance 的table ??
+		/// TODO: why not create a userData ??
         /// </summary>
         /// <param name="l"></param>
         /// <param name="t"></param>
@@ -712,6 +713,7 @@ return index
 		/// -2 is static table
 		/// 设置__typename 和__index/__newindex 方法到instance table 中，还有一些基本的加减乘除大小比较函数
 		/// 然后将这个type的 instance table 以QAName注册到register中
+		/// NOTE: each instance table has __gc metamethod
   		/// </summary>
         /// <param name="l"></param>
         /// <param name="self"></param>

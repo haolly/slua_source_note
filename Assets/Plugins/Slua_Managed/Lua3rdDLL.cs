@@ -10,11 +10,15 @@ using UnityEngine;
 namespace SLua{
 	public static class Lua3rdDLL{
 		static Dictionary<string, LuaCSFunction> DLLRegFuncs = new Dictionary<string, LuaCSFunction>();
-		
+
 		static Lua3rdDLL(){
 			// LuaSocketDLL.Reg(DLLRegFuncs);
 		}
-		
+
+        /// <summary>
+        /// if any method has attribute LualibRegAttribute, then the method will be set as a loader in package.preload
+        /// </summary>
+        /// <param name="L"></param>
 		public static void open(IntPtr L){
 			var typenames = Lua3rdMeta.Instance.typesWithAttribtues;
 			var assemblys = AppDomain.CurrentDomain.GetAssemblies();
@@ -38,18 +42,18 @@ namespace SLua{
 					}
 				}
 			}
-			
+
 			if(DLLRegFuncs.Count == 0){
 				return;
 			}
-			
+
 			LuaDLL.lua_getglobal(L, "package");
 			LuaDLL.lua_getfield(L, -1, "preload");
 			foreach (KeyValuePair<string, LuaCSFunction> pair in DLLRegFuncs) {
 				LuaDLL.lua_pushcfunction (L, pair.Value);
 				LuaDLL.lua_setfield(L, -2, pair.Key);
 			}
-			
+
 			LuaDLL.lua_settop(L, 0);
 		}
 
