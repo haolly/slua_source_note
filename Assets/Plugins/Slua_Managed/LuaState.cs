@@ -1209,6 +1209,12 @@ end
 			LuaDLL.lua_settop(L, oldTop);
 		}
 
+        /// <summary>
+        /// TODO: 這裏設置table字段的時候，lua_rawseti 和 lua_settable 是如何抉擇的？
+        /// </summary>
+        /// <param name="reference"></param>
+        /// <param name="index"></param>
+        /// <param name="o"></param>
 		internal void setObject(int reference, int index, object o)
 		{
 			if (index >= 1) {

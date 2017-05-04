@@ -366,6 +366,7 @@ namespace SLua
 			bool found = gco && objMap.TryGetValue(o, out index);
 			if (found)
 			{
+                //already found, do not need to add again
 				if (LuaDLL.luaS_getcacheud(l, index, udCacheRef) == 1)
 					return -1;
 			}
