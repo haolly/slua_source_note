@@ -34,6 +34,7 @@ namespace SLua
         }
 #endif
         public enum Level
+        {
             Debug,
             Warning,
             Error
@@ -52,7 +53,7 @@ namespace SLua
             UnityEngine.Debug.Log(msg);
 #else
             Console.WriteLine(msg);
-#endif 
+#endif
         }
 
         public static void LogError(string msg, bool hasStacktrace = false)

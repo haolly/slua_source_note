@@ -2,6 +2,7 @@
 .vs
 *.suo
 Library
+.vscode
 Temp
 UnityVS
 AssetStoreTools
@@ -18,6 +19,8 @@ obj/*
 
 /standalone/bin
 /standalone/**/obj
+/standalone/vs2012
+/standalone/vs2013
 
 *.o
 Assets/Slua/Meta/Resources/lua3rdmeta.asset
