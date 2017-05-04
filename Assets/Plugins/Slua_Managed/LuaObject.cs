@@ -49,6 +49,9 @@ namespace SLua
 		}
 	}
 
+    /// <summary>
+    /// TODO: 这里的order对绑定有什么影响 ？？
+    /// </summary>
 	public class LuaBinderAttribute : System.Attribute
 	{
 		public int order;
@@ -911,7 +914,7 @@ return index
 			oc.push(l, o);
 		}
 
-		// lightobj is non-exported object used for re-get from c#, not for lua
+		// TODO:lightobj is non-exported object used for re-get from c#, not for lua
 		public static void pushLightObject(IntPtr l, object t)
 		{
 			ObjectCache oc = ObjectCache.get(l);
@@ -1482,6 +1485,12 @@ return index
 			pushObject(l, a);
 		}
 
+        /// <summary>
+        /// if o is value type, push it directly, if o is a ref in register, push ref
+		/// otherwise, push o and create userdata
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="o"></param>
 		public static void pushVar(IntPtr l, object o)
 		{
 			if (o == null)

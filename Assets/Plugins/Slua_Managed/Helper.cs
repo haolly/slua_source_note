@@ -29,7 +29,9 @@ namespace SLua
     public class Helper : LuaObject
 	{
 
-        //TODO:
+        //TODO: class Table can be treated as a function(constructor ??), when called, the __call metamethod is called, passing the table as the first argument,
+		//followed by any specified argument.
+		//the called return a table, the table's access function first try to get instance field, if it is nil, then get base field
 		static string classfunc = @"
 local getmetatable = getmetatable
 local function Class(base,static,instance)
@@ -269,6 +271,7 @@ return Class
 			{
 				Type t;
 				checkType (l,1,out t);
+				//the second argument must be a lua table
 				LuaDLL.luaL_checktype(l, 2, LuaTypes.LUA_TTABLE);
 				int n = LuaDLL.lua_rawlen(l, 2);
 				Array array=Array.CreateInstance(t,n);

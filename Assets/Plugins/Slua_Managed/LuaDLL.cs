@@ -373,6 +373,12 @@ namespace SLua
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern void lua_insert(IntPtr luaState, int newTop);
 
+        /// <summary>
+        /// string length or table #size, or size of memory for userdata
+        /// </summary>
+        /// <param name="luaState"></param>
+        /// <param name="stackPos"></param>
+        /// <returns></returns>
         public static int lua_rawlen(IntPtr luaState, int stackPos)
         {
             return LuaDLLWrapper.luaS_objlen(luaState, stackPos);
@@ -675,7 +681,7 @@ namespace SLua
 
         /// <summary>
         /// //check the data in the stack postion index is a userData, or it's most base is a userData.
-        /// if is, return it's address, or -1 if it's not
+        /// if is, return it's address **(not the pointer of the pointer, which is the ret of lua_touserdata())**, or -1 if it's not
         /// </summary>
         /// <param name="luaState"></param>
         /// <param name="obj"></param>
@@ -758,6 +764,16 @@ namespace SLua
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern int luaS_checkluatype(IntPtr l, int p, string t);
 
+        /// <summary>
+        /// create an userdata, push it on stack, set the metatable of the userdata to
+        /// the table associated to name t(luaL_getmetatable()), which is set when create new table of c# class
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="index"></param>
+        /// <param name="t"></param>
+        /// <param name="gco"></param>
+        /// <param name="cref"></param>
+        /// <returns></returns>
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern int luaS_pushobject(IntPtr l, int index, string t, bool gco, int cref);
 

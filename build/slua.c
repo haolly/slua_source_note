@@ -434,6 +434,7 @@ LUA_API void luaS_setColor(lua_State *L, int p, float x, float y, float z, float
 	setelement(L, p, w, "a");
 }
 
+// push the index to the register at index index
 static void cacheud(lua_State *l, int index, int cref) {
 	lua_rawgeti(l, LUA_REGISTRYINDEX, cref);
 	lua_pushvalue(l, -2);
@@ -446,6 +447,8 @@ LUA_API int luaS_pushobject(lua_State *l, int index, const char* t, int gco, int
 
 	int is_reflect = 0;
 
+	// step 1
+    //create a userdata
 	luaS_newuserdata(l, index);
 	if (gco) cacheud(l, index, cref);
 
@@ -458,6 +461,8 @@ LUA_API int luaS_pushobject(lua_State *l, int index, const char* t, int gco, int
 		is_reflect = 1;
 	}
 
+	//step 2
+	//set the metatable of userdata
 	lua_setmetatable(l, -2);
 	return is_reflect;
 }

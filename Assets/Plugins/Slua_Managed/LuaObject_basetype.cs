@@ -301,7 +301,7 @@ namespace SLua
 		{
 			if(LuaDLL.lua_isuserdata(l,p)>0)
 			{
-				//TODO, 这里的string是一个userData？？？ 和下面的有什么区别?
+				//TODO:, 这里的string是一个userData？？？ 和下面的有什么区别?
 				object o = checkObj(l, p);
 				if (o is string)
 				{
@@ -486,8 +486,10 @@ namespace SLua
 
 
         /// <summary>
-        /// TODO:
-        /// </summary>
+		/// 如果p处是一个userData, 这个userData必须是一个Type 类型的，返回这个Type
+		/// 如果p处是一个string，从所有已经加载的程序集里面查找这个类型
+		/// 如果p处是一个lua table, 那么这个table应该是有对应的C#类型，其中__fullname 存储了AQName
+  		/// </summary>
         /// <param name="l"></param>
         /// <param name="p"></param>
         /// <param name="t"></param>
@@ -515,6 +517,7 @@ namespace SLua
                     }
                     else
                     {
+						//__fullname is set when create the lua table which represent a c# class, see: completeTypeMeta function
                         LuaDLL.lua_pushstring(l, "__fullname");
                         LuaDLL.lua_rawget(l, p);
                         tname = LuaDLL.lua_tostring(l, -1);
@@ -533,6 +536,7 @@ namespace SLua
 			t = LuaObject.FindType(tname);
             if (t != null && lt==LuaTypes.LUA_TTABLE)
             {
+				//cache
                 LuaDLL.lua_pushstring(l, "__type");
 				pushLightObject(l, t);
                 LuaDLL.lua_rawset(l, p);

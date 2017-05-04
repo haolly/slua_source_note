@@ -184,8 +184,9 @@ namespace SLua
         /// </summary>
 		FreeList cache = new FreeList();
 
-        //all cached object which can be gc collected
+        //all cached object which can be gc collected, the value is the index at cache list
 		Dictionary<object, int> objMap = new Dictionary<object, int>(new ObjEqualityComparer());
+		//the ref corresponding to the cache table
 		int udCacheRef = 0;
         public class ObjEqualityComparer : IEqualityComparer<object>
         {
@@ -201,6 +202,11 @@ namespace SLua
             }
         }
 
+        /// <summary>
+        /// create the cache corresponding to the state
+		/// TODO: __mode
+        /// </summary>
+        /// <param name="l"></param>
 		public ObjectCache(IntPtr l)
 		{
 			LuaDLL.lua_newtable(l);
@@ -282,7 +288,7 @@ namespace SLua
 
 		internal object get(IntPtr l, int p)
 		{
-			//TODO:, 为啥这里返回值是 index ??
+			// the index is actually an unique address
 			int index = LuaDLL.luaS_rawnetobj(l, p);
 			object o;
 			if (index != -1 && cache.get(index, out o))
@@ -309,6 +315,12 @@ namespace SLua
 			push(l, o, true);
 		}
 
+        /// <summary>
+        /// analogy with function push(IntPtr l, object o, bool checkReflect)
+		/// TODO: 为什么要吧Array单独出来
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="o"></param>
 		internal void push(IntPtr l, Array o)
 		{
 			int index = allocID (l, o);
@@ -318,6 +330,12 @@ namespace SLua
 			LuaDLL.luaS_pushobject(l, index, "LuaArray", true, udCacheRef);
 		}
 
+        /// <summary>
+        /// push o to cache list
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="o"></param>
+        /// <returns></returns>
 		internal int allocID(IntPtr l,object o) {
 
 			int index = -1;
@@ -340,12 +358,6 @@ namespace SLua
 			return index;
 		}
 
-        /// <summary>
-        /// TODO: 这里可以检查一个类是否导出了lua接口
-        /// </summary>
-        /// <param name="l"></param>
-        /// <param name="o"></param>
-        /// <param name="checkReflect"></param>
 		internal void push(IntPtr l, object o, bool checkReflect)
 		{
 
