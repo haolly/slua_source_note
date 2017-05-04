@@ -195,10 +195,7 @@ namespace SLua
 
     /// <summary>
     /// 这个类和MulticastDelegate 都可以表示一个LUA_TFUNCTION
-	/// 这里的call 函数如果参数个数不匹配的话是要产生gc alloc的
-	/// 类型不对的话也会有gc(box/unbox)
-	/// <see https://github.com/pangweiwei/slua/wiki/%E5%85%B3%E4%BA%8ELuaFunction.call%E7%9A%84%E4%BC%98%E5%8C%96>
- 	/// </summary>
+    /// </summary>
 	public class LuaFunction : LuaVar
 	{
 		public LuaFunction(LuaState l, int r)
