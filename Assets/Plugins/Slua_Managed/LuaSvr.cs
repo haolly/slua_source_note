@@ -1,4 +1,4 @@
-﻿// The MIT License (MIT)
+// The MIT License (MIT)
 
 // Copyright 2015 Siney/Pangweiwei siney@yeah.net
 //
@@ -280,8 +280,10 @@ namespace SLua
 		}
 
 		// You should call this function periodically by yourself in STANDALONE mode
-        //This is where gc do works
-		public void tick()
+		#if SLUA_STANDALONE
+		public 
+		#endif
+		void tick()
 		{
 			if (!inited)
 				return;
@@ -297,5 +299,6 @@ namespace SLua
 			LuaTimer.tick(Time.deltaTime);
 			#endif
 		}
+
 	}
 }

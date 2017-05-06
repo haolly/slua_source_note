@@ -160,6 +160,33 @@ public class HelloWorld
 		return t;
 	}
 
+	public object this[string path]
+	{
+		get
+		{
+			Debug.Log ("get by string key");
+			return "value";
+		}
+		set
+		{
+			Debug.Log ("set by string key");
+		}
+	}
+
+	public object this[int index]
+	{
+		get
+		{
+			Debug.Log ("get by int key");	
+			return "int value";
+		}
+		set
+		{
+			Debug.Log ("set by int key");	
+		}
+	}
+
+
 
 	static public void ofunc(Type t)
 	{
@@ -171,6 +198,22 @@ public class HelloWorld
 		Debug.Log(go.name);
 	}
 
+	static public void AFunc(int a) {
+		Debug.Log ("AFunc with int");
+	}
+
+	static public void AFunc(float a) {
+		Debug.Log ("AFunc with float");
+	}
+
+	static public void AFunc(string a) {
+		Debug.Log ("AFunc with string");
+	}
+
+	[LuaOverride("AFuncByDouble")]
+	static public void AFunc(double a) {
+		Debug.Log ("AFunc with double");
+	}
 
 
 
@@ -286,4 +329,19 @@ public class HelloWorld
 	}
 
 	internal int b;
+
+    public void func8(List<int> result)
+    {
+        result.Add(1);
+    }
+}
+
+public static class ExtensionTest
+{
+    static List<int> result = new List<int>();
+	public static List<int> func8(this HelloWorld helloWorld)
+    {
+        helloWorld.func8(result);
+        return result;
+    }
 }
