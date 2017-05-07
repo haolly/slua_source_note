@@ -195,7 +195,8 @@ namespace SLua
 
     /// <summary>
     /// 这个类和MulticastDelegate 都可以表示一个LUA_TFUNCTION
-    /// </summary>
+	/// TODO: 爲啥也可也是後者？
+    /// /// </summary>
 	public class LuaFunction : LuaVar
 	{
 		public LuaFunction(LuaState l, int r)

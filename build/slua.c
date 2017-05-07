@@ -118,6 +118,7 @@ LUA_API void luaS_newuserdata(lua_State *L, int val)
 }
 
 //check the data in the stack postion index is a userData, or it's most base is a userData
+//TODO: 這裏的__base 從哪裏來的？
 LUA_API int luaS_rawnetobj(lua_State *L, int index)
 {
 	int *ud;
@@ -480,6 +481,8 @@ LUA_API int luaS_getcacheud(lua_State *l, int index, int cref) {
 }
 
 //如果有__base，则向上查找, 然后判断__typename是否和t相同
+//TODO: where the __base and __typename come from ??
+//NOTE: __typename is set in the instance table when create the lua table which represent the c# class
 LUA_API int luaS_subclassof(lua_State *l, int p, const char* t) {
 
 	const char* tname;

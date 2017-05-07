@@ -31,7 +31,7 @@ namespace SLua
 
         //TODO: class Table can be treated as a function(constructor ??), when called, the __call metamethod is called, passing the table as the first argument,
 		//followed by any specified argument.
-		//the called return a table, the table's access function first try to get instance field, if it is nil, then get base field
+		//the called return a table(like a class), the table's access function first try to get instance field, if it is nil, then get base field
 		static string classfunc = @"
 local getmetatable = getmetatable
 local function Class(base,static,instance)

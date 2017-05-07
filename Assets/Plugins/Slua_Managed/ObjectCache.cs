@@ -286,6 +286,12 @@ namespace SLua
 			return objIndex;
 		}
 
+        /// <summary>
+        /// get the userData
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="p"></param>
+        /// <returns></returns>
 		internal object get(IntPtr l, int p)
 		{
 			// the index is actually an unique address
