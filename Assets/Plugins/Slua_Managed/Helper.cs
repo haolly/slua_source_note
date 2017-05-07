@@ -109,6 +109,7 @@ return Class
 				IEnumerable e = o as IEnumerable;
 				IEnumerator iter = e.GetEnumerator();
 				pushValue(l, true);
+				//the only upvalue
 				pushLightObject(l, iter);
 				LuaDLL.lua_pushcclosure(l, _iter, 1);
 				return 2;
@@ -182,6 +183,7 @@ return Class
 					pushVar(l, ret);
 					return 2;
 				}
+				//TODO: 這裏只是返回true，但是沒有返回結果，調用者怎麼判斷結果？
 				pushValue(l, true);
 				return 1;
 			}

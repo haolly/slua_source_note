@@ -766,7 +766,7 @@ namespace SLua
 
         /// <summary>
         /// create an userdata, push it on stack, set the metatable of the userdata to
-        /// the table associated to name t(luaL_getmetatable()), which is set when create new table of c# class
+        /// the table associated to name t(luaL_getmetatable()), usually t is the QualifiedName
         /// </summary>
         /// <param name="l"></param>
         /// <param name="index"></param>

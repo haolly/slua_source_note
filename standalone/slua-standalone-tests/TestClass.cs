@@ -39,6 +39,7 @@ namespace SLua.Test
         [Test]
         public void SetParentClassField()
         {
+            //TODO: 這裏CreateClass創建出來的對象是一個userData，那麼在lua中是怎麼給這個userData 的字段賦值的呢？
             var code = @"
 local childClass = Slua.CreateClass('SLua.Test.TestClass+ChildClass') 
 childClass.ParentField = 123

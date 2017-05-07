@@ -1175,6 +1175,14 @@ return index
             return true;
         }
 
+        /// <summary>
+        /// check whether the type of element start position from match the parameter type
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="total"></param>
+        /// <param name="from"></param>
+        /// <param name="pars"></param>
+        /// <returns></returns>
         public static bool matchType(IntPtr l, int total, int from, ParameterInfo[] pars)
 		{
 			if (total - from + 1 != pars.Length)
