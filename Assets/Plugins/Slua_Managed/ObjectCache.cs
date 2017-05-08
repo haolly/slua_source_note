@@ -210,10 +210,13 @@ namespace SLua
             }
         }
 
-        /// <summary>
-        /// create the cache corresponding to the state
-        /// </summary>
-        /// <param name="l"></param>
+
+		Dictionary<object, int> objMap = new Dictionary<object, int>(new ObjEqualityComparer());
+        public Dictionary<object, int>.KeyCollection Objs { get { return objMap.Keys; } }
+
+        int udCacheRef = 0;
+
+
 		public ObjectCache(IntPtr l)
 		{
 			LuaDLL.lua_newtable(l);
