@@ -423,6 +423,11 @@ namespace SLua
 		{
 			return obj.GetType().IsValueType == false;
 		}
+
+        public bool isObjInLua(object obj)
+        {
+            return objMap.ContainsKey(obj);
+        }
 	}
 }
 
