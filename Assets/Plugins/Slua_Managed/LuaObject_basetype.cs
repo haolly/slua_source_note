@@ -507,6 +507,7 @@ namespace SLua
                     t = (Type)o;
 					return true;
                 case LuaTypes.LUA_TTABLE:
+					//check cache
                     LuaDLL.lua_pushstring(l, "__type");
                     LuaDLL.lua_rawget(l, p);
                     if (!LuaDLL.lua_isnil(l, -1))
@@ -536,7 +537,7 @@ namespace SLua
 			t = LuaObject.FindType(tname);
             if (t != null && lt==LuaTypes.LUA_TTABLE)
             {
-				//cache
+				//set cache
                 LuaDLL.lua_pushstring(l, "__type");
 				pushLightObject(l, t);
                 LuaDLL.lua_rawset(l, p);

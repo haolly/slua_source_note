@@ -110,14 +110,16 @@ LUA_API void luaS_openextlibs(lua_State *L) {
 #endif
 }
 
-//create a userdata represent a value of int
+//create a userdata to store a value of int, the result userdata is left on the stack
 LUA_API void luaS_newuserdata(lua_State *L, int val)
 {
 	int* pointer = (int*)lua_newuserdata(L, sizeof(int));
 	*pointer = val;
 }
 
-//check the data in the stack postion index is a userData, or it's most base is a userData
+//check the data in the stack postion index is a userData, or it's most __base is a userData
+//TODO: where is the __base got set??
+//return the value of the userdata, not it's pointer
 LUA_API int luaS_rawnetobj(lua_State *L, int index)
 {
 	int *ud;
@@ -137,11 +139,12 @@ LUA_API int luaS_rawnetobj(lua_State *L, int index)
 			return -1;
 	}
 
-    //NOTE: lua_touserdata return the pointer of pointer
+    //NOTE: lua_touserdata return the pointer
 	ud = lua_touserdata(L, index);
 	return (ud != NULL) ? *ud : -1;
 }
 
+//save the pointer in the userdata
 LUA_API void luaS_pushuserdata(lua_State *L, void* ptr)
 {
 	void** pointer = (void**)lua_newuserdata(L, sizeof(void*));
@@ -434,7 +437,8 @@ LUA_API void luaS_setColor(lua_State *L, int p, float x, float y, float z, float
 	setelement(L, p, w, "a");
 }
 
-// push the index to the register at index index
+// push the top value of the stack to the register, at index
+// called in luaS_pushobject, to push a userdata to register at index
 static void cacheud(lua_State *l, int index, int cref) {
 	lua_rawgeti(l, LUA_REGISTRYINDEX, cref);
 	lua_pushvalue(l, -2);
@@ -443,19 +447,24 @@ static void cacheud(lua_State *l, int index, int cref) {
 }
 
 
+//TODO: why need to cache when it is a  GC collectable object? the real object is in the list, the index is cached ?
+//left the userdata on the stack
 LUA_API int luaS_pushobject(lua_State *l, int index, const char* t, int gco, int cref) {
 
 	int is_reflect = 0;
 
 	// step 1
-    //create a userdata
+    //create a userdata to store index
 	luaS_newuserdata(l, index);
 	if (gco) cacheud(l, index, cref);
 
 
+    //get the QAName's metatable, which is set when create the represent table of the C# class
+	//the metatable is the instance table
 	luaL_getmetatable(l, t);
 	if (lua_isnil(l, -1))
 	{
+        //pop nil
 		lua_pop(l, 1);
 		luaL_getmetatable(l, "LuaVarObject");
 		is_reflect = 1;
@@ -463,20 +472,22 @@ LUA_API int luaS_pushobject(lua_State *l, int index, const char* t, int gco, int
 
 	//step 2
 	//set the metatable of userdata
+	//TODO: why do this?
 	lua_setmetatable(l, -2);
 	return is_reflect;
 }
 
+//push the userdata on the stack when there is
 LUA_API int luaS_getcacheud(lua_State *l, int index, int cref) {
 	lua_rawgeti(l, LUA_REGISTRYINDEX, cref);
 	lua_rawgeti(l, -1, index);
 	if (!lua_isnil(l, -1))
 	{
 		lua_remove(l, -2);
-		return 1;
+		return 1; //true
 	}
 	lua_pop(l, 2);
-	return 0;
+	return 0; //false
 }
 
 //如果有__base，则向上查找, 然后判断__typename是否和t相同

@@ -639,7 +639,7 @@ return index
 				// why in global table?
 				// cause every type's instance table will be register in global table with their QualifiedName
 				LuaDLL.luaL_getmetatable(l, ObjectCache.getAQName(parent));
-				// if parentType is not exported to lua
+				// if parentType is not exported to lua, find high hierachy parent recesive recursively
 				if (LuaDLL.lua_isnil(l, -1))
 				{
 					LuaDLL.lua_pop(l, 1);
@@ -866,7 +866,7 @@ return index
 		[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
 		static public int luaGC(IntPtr l)
 		{
-            //NOTE: the index is the address of pointer, which is an unique int
+            //NOTE: ~~the index is the address of pointer, which is an unique int ~~
 			int index = LuaDLL.luaS_rawnetobj(l, 1);
 			if (index > 0)
 			{
@@ -1487,8 +1487,9 @@ return index
 
         /// <summary>
         /// if o is value type, push it directly, if o is a ref in register, push ref
-		/// otherwise, push o and create userdata
-        /// </summary>
+		/// otherwise, push o and create userdata which stores the index in the cache list
+		/// TODO: how to get the vaue?
+  		/// </summary>
         /// <param name="l"></param>
         /// <param name="o"></param>
 		public static void pushVar(IntPtr l, object o)
