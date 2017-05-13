@@ -113,6 +113,7 @@ namespace SLua
         /// push self object ref in register to stack
         /// 將這個對象在register 中的索引ref 軋入斬中,
         /// == get_ref
+		/// TODO: how ensure that the ref is actually created in the state L, not other state?
         /// </summary>
         /// <param name="l"></param>
 		public void push(IntPtr l)
@@ -563,6 +564,11 @@ namespace SLua
 			public int r;
 		}
 		Queue<UnrefPair> refQueue;
+
+        /// <summary>
+        /// A wrapped function call, which checks wether the first return value is true
+		/// NOTE: all function **must** return at least one result, to indicate call status
+        /// </summary>
 		public int PCallCSFunctionRef = 0;
 
 

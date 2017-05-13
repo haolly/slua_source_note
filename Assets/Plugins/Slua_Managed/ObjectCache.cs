@@ -35,6 +35,10 @@ namespace SLua
     /// </summary>
 	public class ObjectCache
 	{
+        /// <summary>
+        /// TODO: why need map pointer to cache list? to prevent GC ??
+        /// </summary>
+        /// <returns></returns>
 		static Dictionary<IntPtr, ObjectCache> multiState = new Dictionary<IntPtr, ObjectCache>();
 
 		static IntPtr oldl = IntPtr.Zero;
@@ -188,8 +192,9 @@ namespace SLua
 		//TODO: why use this extra map to store gc collectable object?
 		Dictionary<object, int> objMap = new Dictionary<object, int>(new ObjEqualityComparer());
         /// <summary>
-		///the ref corresponding to the cache table
-        /// </summary>
+		///the ref corresponding to the cache table, when the object to be pushed is a GC collectable,
+		/// cache the list index as a userdata to this table, TODO: why?
+  		/// </summary>
 		int udCacheRef = 0;
         public class ObjEqualityComparer : IEqualityComparer<object>
         {

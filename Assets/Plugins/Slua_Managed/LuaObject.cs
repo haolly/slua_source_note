@@ -97,6 +97,9 @@ namespace SLua
         /// </summary>
 		const string DelgateTable = "__LuaDelegate";
 
+        /// <summary>
+        /// those two function will be set in instance table and static table
+        /// </summary>
 		static protected LuaFunction newindex_func;
 		static protected LuaFunction index_func;
 
@@ -109,7 +112,8 @@ namespace SLua
 		{
 			/// <summary>
 			/// h[1],h[2] is get and set function, see function AddMember
-			/// 獲取當前ud 的元表，從元表中獲取k所對應的值，如果沒有，則去__parent中去找，如果有，h[2]應該是一個Set函數
+			/// 獲取當前ud 的元表，從元表中獲取k所對應的值，如果沒有，則去__parent中去找(set in function createTypeMetatable())
+			///	如果有，h[2]應該是一個Set函數
 			/// TODO: 这里getmetatable获取的是一个static table, 难道不能设置instance table中的值 ??
 			/// <see createTypeMetatable>
 			/// /// </summary>
@@ -141,7 +145,8 @@ return newindex
 ";
 
 			/// <summary>
-			/// analogy with newindex, NOTE: only get in static table ??
+			/// analogy with newindex, if value is a function, call it, if value is a table, this table contains get/set function
+			/// NOTE: only get in static table ??
 			/// </summary>
 			/// <returns></returns>
 			string indexfun = @"
@@ -638,6 +643,7 @@ return index
                 // GetParent definition
 				// why in global table?
 				// cause every type's instance table will be register in global table with their QualifiedName
+				// see completeInstanceMeta()
 				LuaDLL.luaL_getmetatable(l, ObjectCache.getAQName(parent));
 				// if parentType is not exported to lua, find high hierachy parent recesive recursively
 				if (LuaDLL.lua_isnil(l, -1))
@@ -677,9 +683,10 @@ return index
         /// <summary>
         /// -1 is static table
 		/// 和createInstanceMeta类似analogy
-		/// __fullname is in self table, __typename is in instance table, __parent is in instance table
-		/// register the static table to the register with the name of self.fullName,
+		/// __fullname is in self table, __typename is in instance table, __parent is in instance table and static table
+		/// register the static table to the register with the name of self.fullName, TODO: what is the use ?
 		/// set self's metatable is the static table
+		/// TODO: refer to http://lua-users.org/wiki/MetatableEvents for the metamethod's infomation
  		/// </summary>
         /// <param name="l"></param>
         /// <param name="con"></param>
@@ -698,16 +705,19 @@ return index
 
 			if (con == null) con = noConstructor;
 
+			//TODO: when is constractor function called ?
 			pushValue(l, con);
 			LuaDLL.lua_setfield(l, -2, "__call");
 
 			LuaDLL.lua_pushcfunction(l, typeToString);
 			LuaDLL.lua_setfield(l, -2, "__tostring");
 
-			//set self's metatable is the static table, TODO: wtf, should be instance table, am I understand wrong?
+			//set self's metatable is the static table,
+			//the static table has __index/__newindex/__call/__tostring metamethod
 			LuaDLL.lua_pushvalue(l, -1);
 			LuaDLL.lua_setmetatable(l, -3);
 
+            //register static table with FullName
 			LuaDLL.lua_setfield(l, LuaIndexes.LUA_REGISTRYINDEX, self.FullName);
 		}
 
@@ -716,7 +726,8 @@ return index
 		/// -2 is static table
 		/// 设置__typename 和__index/__newindex 方法到instance table 中，还有一些基本的加减乘除大小比较函数
 		/// 然后将这个type的 instance table 以QAName注册到register中
-		/// NOTE: each instance table has __gc metamethod
+		/// NOTE: each instance table has __gc metamethod,
+		/// TODO: 感觉这个instance 是要作为metatable 来使用的, 但是在哪用的？
   		/// </summary>
         /// <param name="l"></param>
         /// <param name="self"></param>
@@ -760,7 +771,7 @@ return index
 				LuaDLL.lua_pushvalue(l, -1);
                 LuaDLL.lua_setglobal(l, self.FullName + ".Instance");
 			}
-			//set instance table in register
+			//set instance table in register and pop it from stack
 			LuaDLL.lua_setfield(l, LuaIndexes.LUA_REGISTRYINDEX,  ObjectCache.getAQName(self));
 		}
 
@@ -1219,7 +1230,7 @@ return index
 		}
 
         /// <summary>
-        /// Get the element in the stack position of p, which **must*× is a userData, otherwise, return null
+        /// Get the element in the stack position of p, which is pushed onto the stack(cache list) previously
         /// </summary>
         /// <param name="l"></param>
         /// <param name="p"></param>
@@ -1489,7 +1500,8 @@ return index
         /// if o is value type, push it directly, if o is a ref in register, push ref
 		/// otherwise, push o and create userdata which stores the index in the cache list
 		/// TODO: how to get the vaue?
-  		/// </summary>
+		/// TODO: what is the difference between pushObject(push to cache list) and push(not push to cache list) ?
+   		/// </summary>
         /// <param name="l"></param>
         /// <param name="o"></param>
 		public static void pushVar(IntPtr l, object o)
@@ -1615,6 +1627,11 @@ return index
 			return error(l, "Can't new this object");
 		}
 
+        /// <summary>
+        /// __fullname is set in function completeTypeMeta
+        /// </summary>
+        /// <param name="l"></param>
+        /// <returns></returns>
 		[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
 		static public int typeToString(IntPtr l)
 		{

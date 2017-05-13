@@ -289,8 +289,10 @@ namespace SLua
 		#endregion
 
 		#region string
+
         /// <summary>
-		/// 类似于tryGet，如果p位置处是一个string，将其赋予v，并且返回true <br>
+		/// 类似于tryGet，如果p位置处是一个string，将其赋予v，并且返回true; 如果是一个userdata,
+		/// 那么这个userdata应该是一个cache list 的index, 从cache list 中获取这个index 对应的值
 		/// 否则返回false，将v赋值null
   	    /// </summary>
         /// <param name="l"></param>
@@ -301,7 +303,6 @@ namespace SLua
 		{
 			if(LuaDLL.lua_isuserdata(l,p)>0)
 			{
-				//TODO:, 这里的string是一个userData？？？ 和下面的有什么区别?
 				object o = checkObj(l, p);
 				if (o is string)
 				{
