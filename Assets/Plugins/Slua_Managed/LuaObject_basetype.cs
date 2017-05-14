@@ -289,8 +289,10 @@ namespace SLua
 		#endregion
 
 		#region string
+
         /// <summary>
-		/// 类似于tryGet，如果p位置处是一个string，将其赋予v，并且返回true <br>
+		/// 类似于tryGet，如果p位置处是一个string，将其赋予v，并且返回true; 如果是一个userdata,
+		/// 那么这个userdata应该是一个cache list 的index, 从cache list 中获取这个index 对应的值
 		/// 否则返回false，将v赋值null
   	    /// </summary>
         /// <param name="l"></param>
@@ -301,7 +303,6 @@ namespace SLua
 		{
 			if(LuaDLL.lua_isuserdata(l,p)>0)
 			{
-				//TODO:, 这里的string是一个userData？？？ 和下面的有什么区别?
 				object o = checkObj(l, p);
 				if (o is string)
 				{
@@ -507,6 +508,7 @@ namespace SLua
                     t = (Type)o;
 					return true;
                 case LuaTypes.LUA_TTABLE:
+					//check cache
                     LuaDLL.lua_pushstring(l, "__type");
                     LuaDLL.lua_rawget(l, p);
                     if (!LuaDLL.lua_isnil(l, -1))
@@ -536,7 +538,7 @@ namespace SLua
 			t = LuaObject.FindType(tname);
             if (t != null && lt==LuaTypes.LUA_TTABLE)
             {
-				//cache
+				//set cache
                 LuaDLL.lua_pushstring(l, "__type");
 				pushLightObject(l, t);
                 LuaDLL.lua_rawset(l, p);

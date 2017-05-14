@@ -35,6 +35,10 @@ namespace SLua
     /// </summary>
 	public class ObjectCache
 	{
+        /// <summary>
+        /// TODO: why need map pointer to cache list? to prevent GC ??
+        /// </summary>
+        /// <returns></returns>
 		static Dictionary<IntPtr, ObjectCache> multiState = new Dictionary<IntPtr, ObjectCache>();
 
 		static IntPtr oldl = IntPtr.Zero;
@@ -185,8 +189,12 @@ namespace SLua
 		FreeList cache = new FreeList();
 
         //all cached object which can be gc collected, the value is the index at cache list
+		//TODO: why use this extra map to store gc collectable object?
 		Dictionary<object, int> objMap = new Dictionary<object, int>(new ObjEqualityComparer());
-		//the ref corresponding to the cache table
+        /// <summary>
+		///the ref corresponding to the cache table, when the object to be pushed is a GC collectable,
+		/// cache the list index as a userdata to this table, TODO: why?
+  		/// </summary>
 		int udCacheRef = 0;
         public class ObjEqualityComparer : IEqualityComparer<object>
         {
@@ -204,7 +212,6 @@ namespace SLua
 
         /// <summary>
         /// create the cache corresponding to the state
-		/// TODO: __mode
         /// </summary>
         /// <param name="l"></param>
 		public ObjectCache(IntPtr l)
@@ -213,6 +220,7 @@ namespace SLua
 			LuaDLL.lua_newtable(l);
 			LuaDLL.lua_pushstring(l, "v");
 			LuaDLL.lua_setfield(l, -2, "__mode");
+			//NOTE: must set filed __mode before set metatable
 			LuaDLL.lua_setmetatable(l, -2);
 			udCacheRef = LuaDLL.luaL_ref(l, LuaIndexes.LUA_REGISTRYINDEX);
 		}
@@ -248,7 +256,7 @@ namespace SLua
         }
 
         /// <summary>
-        /// TODO: the index is the address of pointer, which is an unique int, where did it got set in this cache ?
+        /// TODO: ~~the index is the address of pointer, which is an unique int, where did it got set in this cache ?~~
         /// </summary>
         /// <param name="index"></param>
 		internal void gc(int index)
@@ -286,15 +294,14 @@ namespace SLua
 			return objIndex;
 		}
 
-        /// <summary>
-        /// get the userData
-        /// </summary>
-        /// <param name="l"></param>
-        /// <param name="p"></param>
-        /// <returns></returns>
+		/// <summary>
+		/// p is the index in the cache list
+		/// </summary>
+		/// <param name="l"></param>
+		/// <param name="p"></param>
+		/// <returns></returns>
 		internal object get(IntPtr l, int p)
 		{
-			// the index is actually an unique address
 			int index = LuaDLL.luaS_rawnetobj(l, p);
 			object o;
 			if (index != -1 && cache.get(index, out o))
@@ -321,14 +328,37 @@ namespace SLua
 			push(l, o, true);
 		}
 
+		internal void push(IntPtr l, object o, bool checkReflect)
+		{
+
+            //real push object into list
+			int index = allocID (l, o);
+			if (index < 0)
+				return;
+
+			bool gco = isGcObject(o);
+
+#if SLUA_CHECK_REFLECTION
+			int isReflect = LuaDLL.luaS_pushobject(l, index, getAQName(o), gco, udCacheRef);
+			if (isReflect != 0 && checkReflect)
+			{
+				Logger.LogWarning(string.Format("{0} not exported, using reflection instead", o.ToString()));
+			}
+#else
+			LuaDLL.luaS_pushobject(l, index, getAQName(o), gco, udCacheRef);
+#endif
+
+		}
+
         /// <summary>
         /// analogy with function push(IntPtr l, object o, bool checkReflect)
-		/// TODO: 为什么要吧Array单独出来
+		/// TODO: 为什么要吧Array单独出来? only difference is the QAName
         /// </summary>
         /// <param name="l"></param>
         /// <param name="o"></param>
 		internal void push(IntPtr l, Array o)
 		{
+            //real push object into list
 			int index = allocID (l, o);
 			if (index < 0)
 				return;
@@ -364,26 +394,6 @@ namespace SLua
 			return index;
 		}
 
-		internal void push(IntPtr l, object o, bool checkReflect)
-		{
-
-			int index = allocID (l, o);
-			if (index < 0)
-				return;
-
-			bool gco = isGcObject(o);
-
-#if SLUA_CHECK_REFLECTION
-			int isReflect = LuaDLL.luaS_pushobject(l, index, getAQName(o), gco, udCacheRef);
-			if (isReflect != 0 && checkReflect)
-			{
-				Logger.LogWarning(string.Format("{0} not exported, using reflection instead", o.ToString()));
-			}
-#else
-			LuaDLL.luaS_pushobject(l, index, getAQName(o), gco, udCacheRef);
-#endif
-
-		}
 
 		static Dictionary<Type, string> aqnameMap = new Dictionary<Type, string>();
 		static string getAQName(object o)
