@@ -10,6 +10,13 @@ namespace SLua
     /// </summary>
     public class Logger
     {
+        public enum Level
+        {
+            Debug,
+            Warning,
+            Error
+        }
+        public static Action<Level, string> LogAction;
 #if !SLUA_STANDALONE
         private static UnityEngine.Object FindScriptByMsg(string msg)
         {
@@ -33,13 +40,6 @@ namespace SLua
             return null;
         }
 #endif
-        public enum Level
-        {
-            Debug,
-            Warning,
-            Error
-        }
-        public static Action<Level, string> LogAction;
 
         public static void Log(string msg)
         {
