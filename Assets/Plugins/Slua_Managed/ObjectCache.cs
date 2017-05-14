@@ -202,11 +202,10 @@ namespace SLua
             }
         }
 
-        /// <summary>
-        /// create the cache corresponding to the state
-		/// TODO: __mode
-        /// </summary>
-        /// <param name="l"></param>
+
+        public Dictionary<object, int>.KeyCollection Objs { get { return objMap.Keys; } }
+
+
 		public ObjectCache(IntPtr l)
 		{
 			LuaDLL.lua_newtable(l);
@@ -404,6 +403,11 @@ namespace SLua
 		{
 			return obj.GetType().IsValueType == false;
 		}
+
+        public bool isObjInLua(object obj)
+        {
+            return objMap.ContainsKey(obj);
+        }
 	}
 }
 
