@@ -999,7 +999,7 @@ return index
 					{
 						if (t == typeof(LuaTable) || t.IsArray)
 							return true;
-						else if (t.IsValueType)
+						else if (t.IsValueType) //TODO: 爲啥這也可以？
 							return true;//luaTypeCheck(l, p, t.Name);
 						else if (LuaDLL.luaS_subclassof(l, p, t.Name) == 1)
 							return true;
@@ -1017,7 +1017,9 @@ return index
 
         /// <summary>
         /// if this table has __fullname field, return true, which is set when create the represent of new c# clas's slua table
-        /// </summary>
+		/// TODO: this item in position p is a type class, which store type infomation ? like **Type** in c#,
+		/// <see> matchType(IntPtr l, int p, LuaTypes lt, Type t)
+        /// /// </summary>
         /// <param name="l"></param>
         /// <param name="p"></param>
         /// <returns></returns>
@@ -1035,6 +1037,12 @@ return index
 			return true;
 		}
 
+        /// <summary>
+        /// TODO:
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="p"></param>
+        /// <returns></returns>
 		public static bool isLuaClass(IntPtr l, int p)
 		{
 			return LuaDLL.luaS_subclassof(l, p, null) == 1;
@@ -1178,6 +1186,14 @@ return index
             return true;
         }
 
+        /// <summary>
+        /// check whether the type of element start position from match the parameter type
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="total"></param>
+        /// <param name="from"></param>
+        /// <param name="pars"></param>
+        /// <returns></returns>
         public static bool matchType(IntPtr l, int total, int from, ParameterInfo[] pars)
 		{
 			if (total - from + 1 != pars.Length)

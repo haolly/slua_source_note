@@ -48,6 +48,10 @@ namespace SLua
 	abstract public class LuaVar : IDisposable
 	{
 		protected LuaState state = null;
+        /// <summary>
+        /// 對於thread, function 等， 這個是在註冊表中的引用
+		/// TODO: 爲啥要這樣做？
+        /// </summary>
 		protected int valueref = 0;
 
 
@@ -196,7 +200,8 @@ namespace SLua
 
     /// <summary>
     /// 这个类和MulticastDelegate 都可以表示一个LUA_TFUNCTION
-    /// </summary>
+	/// TODO: 爲啥也可也是後者？
+    /// /// </summary>
 	public class LuaFunction : LuaVar
 	{
 		public LuaFunction(LuaState l, int r)
@@ -1068,6 +1073,8 @@ end
 					LuaDLL.lua_pop(L, 2);
 					return false;
 				}
+				//TODO: pcall 調用的是一個luaCSFunction, 這個函數的返回值表示壓入棧上的結果數目 ？？第一個值 true/false 是怎麼檢測的？
+				// 爲啥會少一個值 ？？
 				LuaDLL.lua_remove(L, errfunc); // pop error function
 				ret = topObjects(errfunc - 1);
 				return true;

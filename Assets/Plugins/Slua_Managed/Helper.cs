@@ -31,7 +31,7 @@ namespace SLua
 
         //class Table can be treated as a function(constructor), when called, the __call metamethod is called, passing the table as the first argument,
 		//followed by any specified argument.
-		//the called return a table, the table's access function first try to get instance field, if it is nil, then get base field
+		//the called return a table(like a class), the table's access function first try to get instance field, if it is nil, then get base field
 		static string classfunc = @"
 local getmetatable = getmetatable
 local function Class(base,static,instance)
@@ -109,6 +109,7 @@ return Class
 				IEnumerable e = o as IEnumerable;
 				IEnumerator iter = e.GetEnumerator();
 				pushValue(l, true);
+				//the only upvalue
 				pushLightObject(l, iter);
 				LuaDLL.lua_pushcclosure(l, _iter, 1);
 				return 2;
@@ -182,6 +183,7 @@ return Class
 					pushVar(l, ret);
 					return 2;
 				}
+				//TODO: 這裏只是返回true，但是沒有返回結果，調用者怎麼判斷結果？
 				pushValue(l, true);
 				return 1;
 			}
