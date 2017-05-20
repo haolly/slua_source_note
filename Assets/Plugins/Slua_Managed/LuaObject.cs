@@ -111,9 +111,6 @@ namespace SLua
 		static protected LuaFunction newindex_func;
 		static protected LuaFunction index_func;
 
-		delegate void PushVarDelegate(IntPtr l, object o);
-		static Dictionary<Type, PushVarDelegate> typePushMap = new Dictionary<Type, PushVarDelegate>();
-
 		internal const int VersionNumber = 0x1201;
 
 		public static void init(IntPtr l)
@@ -202,9 +199,6 @@ return index
 
 			LuaDLL.lua_newtable(l);
 			LuaDLL.lua_setglobal(l, DelgateTable);
-
-
-			setupPushVar();
 		}
 		#region Basic Object function
 
@@ -280,9 +274,6 @@ return index
 		}
 		#endregion
 
-        /// <summary>
-        /// 设置各种类型对对应的push函数，这个push函数能将正确的对象压入栈中
-        /// </summary>
 		static void setupPushVar()
 		{
 			typePushMap[typeof(float)] = (IntPtr L, object o) =>
@@ -330,7 +321,7 @@ return index
 				   LuaDLL.lua_pushinteger(L, (byte)o);
 			   };
 
-            //long
+
 			typePushMap[typeof(Int64)] =
 				typePushMap[typeof(UInt64)] =
 				(IntPtr L, object o) =>
@@ -392,13 +383,6 @@ return index
 			};
 		}
 
-        /// <summary>
-        /// recursive get field f in table(which must have a metatable)
-        /// </summary>
-        /// <param name="l"></param>
-        /// <param name="f"></param>
-        /// <param name="tip"></param>
-        /// <returns></returns>
 		static int getOpFunction(IntPtr l, string f, string tip)
 		{
 			int err = pushTry(l);
@@ -1265,31 +1249,39 @@ return index
 			return oc.get(l, p);
 		}
 
-		static public bool checkArray<T>(IntPtr l, int p, out T[] ta)
-		{
-			if (LuaDLL.lua_type(l, p) == LuaTypes.LUA_TTABLE)
-			{
-				int n = LuaDLL.lua_rawlen(l, p);
-				ta = new T[n];
-				for (int k = 0; k < n; k++)
-				{
-					LuaDLL.lua_rawgeti(l, p, k + 1);
-					ta[k]=(T)Convert.ChangeType(checkVar(l, -1),typeof(T));
-					LuaDLL.lua_pop(l, 1);
-				}
-				return true;
-			}
-			else
-			{
-				Array array = checkObj(l, p) as Array;
-				if (array == null)
-					throw new ArgumentException ("expect array");
-				ta = array as T[];
-				return ta!=null;
-			}
-		}
+        static public bool checkArray<T>(IntPtr l, int p, out T[] ta)
+        {
+            if (LuaDLL.lua_type(l, p) == LuaTypes.LUA_TTABLE)
+            {
+                int n = LuaDLL.lua_rawlen(l, p);
+                ta = new T[n];
+                for (int k = 0; k < n; k++)
+                {
+                    LuaDLL.lua_rawgeti(l, p, k + 1);
+                    object o = checkVar(l, -1);
+                    Type fromT = o.GetType();
+                    Type toT = typeof(T);
+                    if (toT.IsAssignableFrom(fromT))
+                    {
+                        ta[k] = (T)o;
+                    }
+                    else
+                    {
+                        ta[k] = (T)Convert.ChangeType(o, typeof(T));
+                    }
+                    LuaDLL.lua_pop(l, 1);
+                }
+                return true;
+            }
+            else
+            {
+                Array array = checkObj(l, p) as Array;
+                ta = array as T[];
+                return ta != null;
+            }
+        }
 
-		static public bool checkParams<T>(IntPtr l, int p, out T[] pars) where T:class
+        static public bool checkParams<T>(IntPtr l, int p, out T[] pars) where T:class
 		{
 			int top = LuaDLL.lua_gettop(l);
 			if (top - p >= 0)
@@ -1533,9 +1525,9 @@ return index
 
 			Type t = o.GetType();
 
-
-			PushVarDelegate push;
-			if (typePushMap.TryGetValue(t, out push))
+            LuaState.PushVarDelegate push;
+            LuaState ls = LuaState.get(l);
+			if (ls.tryGetTypePusher(t, out push))
 				push(l, o);
 			else if (t.IsEnum)
 			{
