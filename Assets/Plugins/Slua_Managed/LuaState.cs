@@ -1082,6 +1082,7 @@ end
 
         /// <summary>
         /// push a wraped LuaCSFunction(ie cFunction)
+		/// NOTE: all LuaCSFunction which push by this function **MUST** return two value, the first is a status code(true or false)
         /// </summary>
         /// <param name="L"></param>
         /// <param name="function"></param>
