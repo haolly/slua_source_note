@@ -183,7 +183,11 @@ return Class
 					pushVar(l, ret);
 					return 2;
 				}
-				//TODO: 這裏只是返回true，但是沒有返回結果，調用者怎麼判斷結果？
+				//NOTE: 這裏只是返回true，但是沒有返回結果，調用者怎麼判斷結果？
+				//return 1 indicate there are only one result returned, so extra return value is nil
+				//if there could not find a suitable constructor, CreateClass will return nil, so, the first return value **true** is handled by which part?
+				//the first true is a status indicator, checked in PCallLuaCSFunction, PCallLuaCSFunction will check the first returned value, and return the
+				//extra value
 				pushValue(l, true);
 				return 1;
 			}
@@ -369,6 +373,11 @@ return Class
 			return 2;
 		}
 
+        /// <summary>
+        /// NOTE: addMember will push a wrapped PCallLuaCSFunction, so every function pushed by addMember **must** return two result,
+		/// the first is a status indicator
+        /// </summary>
+        /// <param name="l"></param>
         static public void reg(IntPtr l)
 		{
             getTypeTable(l, "Slua");

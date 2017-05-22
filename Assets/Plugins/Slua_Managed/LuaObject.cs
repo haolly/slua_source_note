@@ -119,7 +119,6 @@ namespace SLua
 			/// h[1],h[2] is get and set function, see function AddMember
 			/// 獲取當前ud 的元表，從元表中獲取k所對應的值，如果沒有，則去__parent中去找(set in function createTypeMetatable())
 			///	如果有，h[2]應該是一個Set函數
-			/// TODO: 这里getmetatable获取的是一个static table, 难道不能设置instance table中的值 ??
 			/// <see createTypeMetatable>
 			/// /// </summary>
 			/// <returns></returns>
@@ -202,12 +201,6 @@ return index
 		}
 		#region Basic Object function
 
-		/// <summary>
-		/// TODO:
-		/// /// 爲什麼push多一個true ？？
-		/// </summary>
-		/// <param name="l"></param>
-		/// <returns></returns>
 		[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
 		static public int ToString(IntPtr l)
 		{
@@ -634,7 +627,7 @@ return index
 			{
                 // GetParent's instance table
 				// why in global table?
-				// cause every type's instance table will be register in global table with their QualifiedName
+				// cause every type's instance table will be register in global table as a metatable with their QualifiedName
 				// see completeInstanceMeta()
 				LuaDLL.luaL_getmetatable(l, ObjectCache.getAQName(parent));
 				// if parentType is not exported to lua, find high hierachy parent recesive recursively
@@ -698,14 +691,15 @@ return index
 
 			if (con == null) con = noConstructor;
 
-			//TODO: when is constractor function called ?
+			//NOTE: when is constractor function called ?
+			//This table is set as a metatable for self's table, so when self table is called as a function, the constructor function will be called
 			pushValue(l, con);
 			LuaDLL.lua_setfield(l, -2, "__call");
 
 			LuaDLL.lua_pushcfunction(l, typeToString);
 			LuaDLL.lua_setfield(l, -2, "__tostring");
 
-			//set self's metatable is the static table,
+			//set self's metatable as the static table,
 			//the static table has __index/__newindex/__call/__tostring metamethod
 			LuaDLL.lua_pushvalue(l, -1);
 			LuaDLL.lua_setmetatable(l, -3);
@@ -819,6 +813,8 @@ return index
 
         /// <summary>
         /// 给type的table注册方法，分别在static table 或者 instance table 中
+        /// NOTE: addMember will push a wrapped PCallLuaCSFunction, so every function pushed by addMember **must** return two result,
+		/// the first is a status indicator
         /// </summary>
         /// <param name="l"></param>
         /// <param name="func"></param>
