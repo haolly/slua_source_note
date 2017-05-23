@@ -33,18 +33,6 @@ namespace SLua
 #if !SLUA_STANDALONE
     using UnityEngine;
 #endif
-    /// <summary>
-    /// 异常信息1: System.AccessViolationException
-   	/// 在 LuaInterface.LuaDLL.luaL_ref(IntPtr, Int32)
-   	/// 在 SLua.LuaTable..ctor(SLua.LuaState)
-	/// 异常信息2: System.OutOfMemoryException
- 	/// 在 System.Collections.Generic.Queue`1[[SLua.LuaState+UnrefPair, slua-standalone, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]].SetCapacity(Int32)
- 	/// 在 System.Collections.Generic.Queue`1[[SLua.LuaState+UnrefPair, slua-standalone, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]].Enqueue(UnrefPair)
- 	/// 在 SLua.LuaState.gcRef(UnRefAction, Int32)
- 	/// 在 SLua.LuaVar.Dispose(Boolean)
- 	/// 在 SLua.LuaVar.Finalize()
-
-    ///  </summary>
 	abstract public class LuaVar : IDisposable
 	{
 		protected LuaState state = null;

@@ -180,6 +180,7 @@ return Class
 
 					object ret = target.Invoke(args);
 					pushValue(l, true);
+					//TODO: pushVar 和 pushValue 有什么区别？
 					pushVar(l, ret);
 					return 2;
 				}
@@ -298,6 +299,12 @@ return Class
 			}
 		}
 
+        /// <summary>
+        /// 改变self table 的metatable 为相应目标对象的 instance table
+		/// TODO: 所以，在导出c#类的时候，在哪里设置了self 的metatable为　instance table ??
+        /// </summary>
+        /// <param name="l"></param>
+        /// <returns></returns>
 		[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
 		static public int As(IntPtr l)
 		{
@@ -307,7 +314,9 @@ return Class
 				{
 					return error(l, "No matched type of param 2");
 				}
+				//get __fullname
 				string meta = LuaDLL.lua_tostring(l, -1);
+                //get instance table
 				LuaDLL.luaL_getmetatable(l, meta);
 				LuaDLL.lua_setmetatable(l, 1);
 				pushValue(l, true);

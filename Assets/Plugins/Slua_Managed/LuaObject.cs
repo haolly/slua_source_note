@@ -116,10 +116,10 @@ namespace SLua
 		public static void init(IntPtr l)
 		{
 			/// <summary>
+			/// ud is a table, may be a static table or an instance table
 			/// h[1],h[2] is get and set function, see function AddMember
 			/// 獲取當前ud 的元表，從元表中獲取k所對應的值，如果沒有，則去__parent中去找(set in function createTypeMetatable())
 			///	如果有，h[2]應該是一個Set函數
-			/// <see createTypeMetatable>
 			/// /// </summary>
 			/// <returns></returns>
 			string newindexfun = @"
@@ -149,8 +149,8 @@ return newindex
 ";
 
 			/// <summary>
-			/// analogy with newindex, if value is a function, call it, if value is a table, this table contains get/set function
-			/// NOTE: only get in static table ??
+			/// ud is a table, may be a static table or an instance table
+			/// analogy with newindex, if value is a function, return it, if value is a table, this table contains get/set function
 			/// </summary>
 			/// <returns></returns>
 			string indexfun = @"
@@ -671,7 +671,7 @@ return index
 		/// 和createInstanceMeta类似analogy
 		/// __fullname is in self table, __typename is in instance table, __parent is in instance table and static table
 		/// register the static table to the register with the name of self.fullName, TODO: what is the use ?
-		/// NOTE: set self's metatable is the static table
+		/// NOTE: set self's metatable as the static table
 		/// TODO: refer to http://lua-users.org/wiki/MetatableEvents for the metamethod's infomation
  		/// </summary>
         /// <param name="l"></param>
@@ -679,10 +679,12 @@ return index
         /// <param name="self"></param>
 		static void completeTypeMeta(IntPtr l, LuaCSFunction con, Type self)
 		{
-			//set __fullname in self table
+			//set __fullname in self table, which is AQName
+			//NOTE: CLUE, 根据 __fullname 可以找到 AQName, 根据 AQName 可以找到 instance table
 			LuaDLL.lua_pushstring(l, ObjectCache.getAQName(self));
 			LuaDLL.lua_setfield(l, -3, "__fullname");
 
+            //下面两个metamethod 控制了字段的赋值和获取值的方式, see init function
 			index_func.push(l);
 			LuaDLL.lua_setfield(l, -2, "__index");
 
@@ -696,6 +698,7 @@ return index
 			pushValue(l, con);
 			LuaDLL.lua_setfield(l, -2, "__call");
 
+            //设置self table 的 metatable 后，这个函数打印出 __fullname 字段
 			LuaDLL.lua_pushcfunction(l, typeToString);
 			LuaDLL.lua_setfield(l, -2, "__tostring");
 
@@ -721,6 +724,7 @@ return index
         /// <param name="self"></param>
 		private static void completeInstanceMeta(IntPtr l, Type self)
 		{
+            //TODO: 什么时候用到的呢？
 			LuaDLL.lua_pushstring(l, "__typename");
 			LuaDLL.lua_pushstring(l, self.Name);
 			LuaDLL.lua_rawset(l, -3);
@@ -732,6 +736,7 @@ return index
 			newindex_func.push(l);
 			LuaDLL.lua_setfield(l, -2, "__newindex");
 
+            //mathematic operators, metamethod
 			pushValue(l, lua_add);
 			LuaDLL.lua_setfield(l, -2, "__add");
 			pushValue(l, lua_sub);
@@ -751,6 +756,7 @@ return index
 			pushValue(l, lua_tostring);
 			LuaDLL.lua_setfield(l, -2, "__tostring");
 
+            //__gc metamethod will be invoked when a userdata is set to be garbage collected
 			LuaDLL.lua_pushcfunction(l, lua_gc);
 			LuaDLL.lua_setfield(l, -2, "__gc");
 
@@ -761,6 +767,7 @@ return index
 			}
 			//set instance table in register and pop it from stack,
 			//every direct child's instance table will set __parent field with this table, see, createTypeMetatable
+			//NOTE: 在luaS_pushobject 中设置instance table 为 index(userData) 的metatable
 			LuaDLL.lua_setfield(l, LuaIndexes.LUA_REGISTRYINDEX,  ObjectCache.getAQName(self));
 		}
 
@@ -868,7 +875,7 @@ return index
 		[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
 		static public int luaGC(IntPtr l)
 		{
-            //NOTE: ~~the index is the address of pointer, which is an unique int ~~
+            //TODO: why the index is 1 ?
 			int index = LuaDLL.luaS_rawnetobj(l, 1);
 			if (index > 0)
 			{
@@ -904,6 +911,11 @@ return index
 			}
 		}
 
+        /// <summary>
+        /// left the userdata on the stack
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="o"></param>
 		public static void pushObject(IntPtr l, object o)
 		{
 			ObjectCache oc = ObjectCache.get(l);
@@ -1007,10 +1019,9 @@ return index
 		}
 
         /// <summary>
-        /// if this table has __fullname field, return true, which is set when create the represent of new c# clas's slua table
-		/// TODO: this item in position p is a type class, which store type infomation ? like **Type** in c#,
-		/// <see> matchType(IntPtr l, int p, LuaTypes lt, Type t)
-        /// /// </summary>
+        /// if this table has __fullname field, return true, which is set when create the represent of c# class, in self table
+		/// NOTE: the __fullname field is AQName
+        /// </summary>
         /// <param name="l"></param>
         /// <param name="p"></param>
         /// <returns></returns>
@@ -1029,7 +1040,9 @@ return index
 		}
 
         /// <summary>
-        /// TODO:
+		//如果有__base，则向上查找, 然后判断metatable 的 __typename是否和t相同
+		//TODO: where the __base and __typename come from ??
+		//NOTE: __typename is set in the instance table when create the lua table which represent the c# class
         /// </summary>
         /// <param name="l"></param>
         /// <param name="p"></param>
@@ -1200,13 +1213,6 @@ return index
 			return true;
 		}
 
-        /// <summary>
-        /// <see LuaDLL.luaS_checkluatype>
-        /// </summary>
-        /// <param name="l"></param>
-        /// <param name="p"></param>
-        /// <param name="t"></param>
-        /// <returns></returns>
 		static public bool luaTypeCheck(IntPtr l, int p, string t)
 		{
 			return LuaDLL.luaS_checkluatype(l, p, t) != 0;
@@ -1408,6 +1414,13 @@ return index
             }
         }
 
+        /// <summary>
+        /// 根据p在 lua 中的类型，返回相应的c# 数据类型
+		/// TODO: 感觉像是pushVar 的相反函数
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="p"></param>
+        /// <returns></returns>
 		static public object checkVar(IntPtr l, int p)
 		{
 			LuaTypes type = LuaDLL.lua_type(l, p);
@@ -1553,6 +1566,7 @@ return index
 
         /// <summary>
         /// check the first position in the stack is not nil
+		/// NOTE: because checkSelf is used in member function, so checkObj use the index 1 as their argument
         /// </summary>
         /// <param name="l"></param>
         /// <returns></returns>

@@ -348,8 +348,8 @@ namespace SLua
         }
 
         /// <summary>
-        /// Ç°ÌáÊÇÏÈ½«valueÑ¹ÈëÕ»ÖĞ
-        /// ÉèÖÃ global ±íÖĞ,t[name] =value
+        /// å‰ææ˜¯å…ˆå°†valueå‹å…¥æ ˆä¸­
+        /// è®¾ç½® global è¡¨ä¸­,t[name] =value
         /// </summary>
         /// <param name="luaState"></param>
         /// <param name="name"></param>
@@ -560,7 +560,7 @@ namespace SLua
 #if SLUA_STANDALONE
             // Add all LuaCSFunction?? or they will be GC collected!  (problem at windows, .net framework 4.5, `CallbackOnCollectedDelegated` exception)
             //See https://manski.net/2012/06/pinvoke-tutorial-pinning-part-4/
-            //·ÀÖ¹GCÊÕ¼¯
+            //é˜²æ­¢GCæ”¶é›†
             GCHandle.Alloc(function);
 #endif
             IntPtr fn = Marshal.GetFunctionPointerForDelegate(function);
@@ -642,7 +642,7 @@ namespace SLua
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern void lua_getfield(IntPtr luaState, int stackPos, string meta);
         /// <summary>
-        /// »ñÈ¡registerÖĞµÄmeta¶ÔÓ¦µÄÔªËØ
+        /// è·å–registerä¸­çš„metaå¯¹åº”çš„å…ƒç´ 
         /// </summary>
         /// <param name="luaState"></param>
         /// <param name="meta"></param>
@@ -692,11 +692,12 @@ namespace SLua
 
         /// <summary>
         /// //check the data in the stack postion index is a userData, or it's most __base is a userData.
-        /// if is, return the userdata(which may be an int) or -1 if it's not
+        /// if is, return the userdata(which is a int index) or -1 if it's not
+        /// ref luaS_pushobject
         /// </summary>
         /// <param name="luaState"></param>
-        /// <param name="obj"></param>
-        /// <returns></returns>
+        /// <param name="obj">the index in stack</param>
+        /// <returns>the index of cache list</returns>
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern int luaS_rawnetobj(IntPtr luaState, int obj);
 
@@ -724,7 +725,7 @@ namespace SLua
         public static void lua_pushcclosure(IntPtr l, LuaCSFunction f, int nup)
         {
 #if SLUA_STANDALONE
-            // Add all LuaCSFunction£¬ or they will be GC collected!  (problem at windows, .net framework 4.5, `CallbackOnCollectedDelegated` exception)
+            // Add all LuaCSFunctionï¼Œ or they will be GC collected!  (problem at windows, .net framework 4.5, `CallbackOnCollectedDelegated` exception)
             GCHandle.Alloc(f);
 #endif
             IntPtr fn = Marshal.GetFunctionPointerForDelegate(f);
@@ -765,8 +766,9 @@ namespace SLua
         public static extern void luaS_setDataVec(IntPtr l, int p, float x, float y, float z, float w);
 
         /// <summary>
-        /// ÊÇÒ»¸ötable£¬²¢ÇÒÓĞmetatable£¬metatable[__typename] == t Èç¹ût != null
-        /// ·µ»Ø1 ±íÊ¾true£¬ 0±íÊ¾FALSE
+        /// æ˜¯ä¸€ä¸ªtableï¼Œå¹¶ä¸”æœ‰metatableï¼Œmetatable[__typename] == t å¦‚æœt != null
+        /// TODO: where did the metatable got set ? Only in LuaValueType ?
+        /// è¿”å›1 è¡¨ç¤ºtrueï¼Œ 0è¡¨ç¤ºFALSE
         /// </summary>
         /// <param name="l"></param>
         /// <param name="p"></param>
@@ -780,6 +782,7 @@ namespace SLua
         /// set the metatable of the userdata to
         /// the table associated to name t(luaL_getmetatable()), which is set when create new table of c# class
         /// TODO: why does it set the metatable of the userdata(which is the only index value store in it)?
+        /// left the userdata on the stack
         /// </summary>
         /// <param name="l"></param>
         /// <param name="index">the index in the cache list</param>
@@ -802,8 +805,6 @@ namespace SLua
 
 
         /// <summary>
-        /// //??????__base???????????, ????§Ø?__typename?????t???
-        /// </summary>
         /// <param name="l"></param>
         /// <param name="index"></param>
         /// <param name="t"></param>

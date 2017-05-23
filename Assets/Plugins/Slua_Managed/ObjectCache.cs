@@ -194,6 +194,7 @@ namespace SLua
         /// <summary>
 		///the ref corresponding to the cache table, when the object to be pushed is a GC collectable,
 		/// cache the list index as a userdata to this table, TODO: why?
+		/// NOTE: the cache table is a weak table which value is weak
   		/// </summary>
 		int udCacheRef = 0;
         public class ObjEqualityComparer : IEqualityComparer<object>
@@ -255,10 +256,6 @@ namespace SLua
             return objMap.Count;
         }
 
-        /// <summary>
-        /// TODO: ~~the index is the address of pointer, which is an unique int, where did it got set in this cache ?~~
-        /// </summary>
-        /// <param name="index"></param>
 		internal void gc(int index)
 		{
 			object o;
@@ -295,7 +292,8 @@ namespace SLua
 		}
 
 		/// <summary>
-		/// p is the index in the cache list
+		/// p is the index in the stack
+		/// Get the real object
 		/// </summary>
 		/// <param name="l"></param>
 		/// <param name="p"></param>

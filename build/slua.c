@@ -29,8 +29,8 @@
 
 #define LUA_LIB
 
-#include "lua.h"
-#include "lauxlib.h"
+#include "lua-5.1.5/src/lua.h"
+#include "lua-5.1.5/src/lauxlib.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -240,6 +240,7 @@ static void setmetatable(lua_State *L, int p, int what) {
 
 
 //是一个table，并且有metatable，metatable[__typename] == t 如果t != null
+//TODO: where did the metatable got set ? only in LuaValueType ?
 //返回1 表示true， 0表示FALSE
 LUA_API int luaS_checkluatype(lua_State *L, int p, const char *t) {
 	int top;
@@ -447,8 +448,9 @@ static void cacheud(lua_State *l, int index, int cref) {
 }
 
 
-//TODO: why need to cache when it is a  GC collectable object? the real object is in the list, the index is cached ?
+//TODO: why need to cache when it is a  GC collectable object?
 //left the userdata on the stack
+//luaS_rawnetobj is the getter
 LUA_API int luaS_pushobject(lua_State *l, int index, const char* t, int gco, int cref) {
 
 	int is_reflect = 0;
@@ -459,7 +461,7 @@ LUA_API int luaS_pushobject(lua_State *l, int index, const char* t, int gco, int
 	if (gco) cacheud(l, index, cref);
 
 
-    //get the QAName's metatable, which is set when create the represent table of the C# class
+    //get the metatable associated with obj's QAName, which is set when create the represent table of the C# class in instance table
 	//the metatable is the instance table
 	luaL_getmetatable(l, t);
 	if (lua_isnil(l, -1))
@@ -490,7 +492,7 @@ LUA_API int luaS_getcacheud(lua_State *l, int index, int cref) {
 	return 0; //false
 }
 
-//如果有__base，则向上查找, 然后判断__typename是否和t相同
+//如果有__base，则向上查找, 然后判断metatable 的 __typename是否和t相同
 //TODO: where the __base and __typename come from ??
 //NOTE: __typename is set in the instance table when create the lua table which represent the c# class
 LUA_API int luaS_subclassof(lua_State *l, int p, const char* t) {

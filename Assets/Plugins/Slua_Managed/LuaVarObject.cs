@@ -222,14 +222,13 @@ namespace SLua
         /// Note:不能访问没有导出的父类的成员、属性、字段等 TODO: FIXME:
         /// BUG: 导出List<int> 后，就不能用下表来访问了,必须要用GetItem函数
         /// </summary>
-        /// <param name="l"></param>
-        /// <returns>TODO, 返回值表示向棧上壓入元素的個數，在哪裏使用這個信息呢？</returns>
         [MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
         static public int luaIndex(IntPtr l)
         {
             try
             {
                 ObjectCache oc = ObjectCache.get(l);
+                //TODO: why the index is 1 ?
                 object self = oc.get(l, 1);
 
                 LuaTypes t = LuaDLL.lua_type(l, 2);
@@ -592,6 +591,9 @@ namespace SLua
         }
     }
 
+    /// <summary>
+    /// TODO: why wrap the Type class ?
+    /// </summary>
     class LuaClassObject
     {
         Type cls;

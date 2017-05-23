@@ -77,12 +77,6 @@ namespace SLua
 
 		static Dictionary<string, ArrayPropFunction> propMethod = new Dictionary<string, ArrayPropFunction>();
 		[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
-        /// <summary>
-		/// TODO:
-        /// 爲啥要多push 一個true ？？
-        /// </summary>
-        /// <param name="l"></param>
-        /// <returns></returns>
 		static public int luaIndex(IntPtr l)
 		{
 			try
