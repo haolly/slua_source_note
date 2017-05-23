@@ -632,7 +632,7 @@ return index
 			LuaDLL.lua_pushstring(l, "__parent");
 			while (parent != null && parent != typeof(object) && parent != typeof(ValueType))
 			{
-                // GetParent definition
+                // GetParent's instance table
 				// why in global table?
 				// cause every type's instance table will be register in global table with their QualifiedName
 				// see completeInstanceMeta()
@@ -645,12 +645,13 @@ return index
 				}
 				else
 				{
-					//set __parent field to the finded parent table in instance table
+					//set __parent field associate with the finded parent in instance table
 					LuaDLL.lua_rawset(l, -3);
 
 					//set __parent field in static table
 					//each type will register itself's static table with fullname in register
 					LuaDLL.lua_pushstring(l, "__parent");
+					//the parent.FullName is registered in function completeTypeMeta
 					LuaDLL.luaL_getmetatable(l, parent.FullName);
 					LuaDLL.lua_rawset(l, -4);
 
@@ -677,7 +678,7 @@ return index
 		/// 和createInstanceMeta类似analogy
 		/// __fullname is in self table, __typename is in instance table, __parent is in instance table and static table
 		/// register the static table to the register with the name of self.fullName, TODO: what is the use ?
-		/// set self's metatable is the static table
+		/// NOTE: set self's metatable is the static table
 		/// TODO: refer to http://lua-users.org/wiki/MetatableEvents for the metamethod's infomation
  		/// </summary>
         /// <param name="l"></param>
@@ -710,6 +711,7 @@ return index
 			LuaDLL.lua_setmetatable(l, -3);
 
             //register static table with FullName
+			//every direct child's static table will set __parent field with this table, see, createTypeMetatable
 			LuaDLL.lua_setfield(l, LuaIndexes.LUA_REGISTRYINDEX, self.FullName);
 		}
 
@@ -763,7 +765,8 @@ return index
 				LuaDLL.lua_pushvalue(l, -1);
                 LuaDLL.lua_setglobal(l, self.FullName + ".Instance");
 			}
-			//set instance table in register and pop it from stack
+			//set instance table in register and pop it from stack,
+			//every direct child's instance table will set __parent field with this table, see, createTypeMetatable
 			LuaDLL.lua_setfield(l, LuaIndexes.LUA_REGISTRYINDEX,  ObjectCache.getAQName(self));
 		}
 
