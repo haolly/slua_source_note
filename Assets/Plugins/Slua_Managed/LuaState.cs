@@ -1,4 +1,4 @@
-// The MIT License (MIT)
+﻿// The MIT License (MIT)
 
 // Copyright 2015 Siney/Pangweiwei siney@yeah.net
 //
@@ -410,10 +410,10 @@ namespace SLua
 
 		public object invoke(string func, params object[] args)
 		{
-			LuaFunction f = (LuaFunction)this[func];
-			if (f != null)
-			{
-				return f.call(args);
+			using (LuaFunction f = (LuaFunction)this [func]) {
+				if (f != null) {
+					return f.call (args);
+				}
 			}
 			throw new Exception(string.Format("Can't find {0} function", func));
 		}
@@ -466,7 +466,7 @@ namespace SLua
 				else
 					LuaDLL.lua_pop(t.L, 1);
 
-                var ty = LuaDLL.lua_type(t.L, -1);
+                //var ty = LuaDLL.lua_type(t.L, -1);
 				bool ret = LuaDLL.lua_next(t.L, indext) > 0;
 				if (!ret) iterPhase = 2;
 
@@ -691,6 +691,9 @@ end
 			LuaDLL.lua_pushcfunction(L, print);
 			LuaDLL.lua_setglobal(L, "print");
 
+            LuaDLL.lua_pushcfunction(L, printerror);
+            LuaDLL.lua_setglobal(L, "printerror");
+
 			LuaDLL.lua_pushcfunction(L, pcall);
 			LuaDLL.lua_setglobal(L, "pcall");
 
@@ -711,6 +714,58 @@ end
 
 			// overload lua's coroutine.resume function to add additional report error
 			LuaState.get(L).doString(resumefunc);
+
+            // https://github.com/pkulchenko/MobDebug/blob/master/src/mobdebug.lua#L290
+            // Dump only 3 stacks, or it will return null (I don't know why)
+            string dumpstackfunc = @"
+local printerror=printerror
+dumpstack=function()
+  function vars(f)
+    local dump = """"
+    local func = debug.getinfo(f, ""f"").func
+    local i = 1
+    local locals = {}
+    -- get locals
+    while true do
+      local name, value = debug.getlocal(f, i)
+      if not name then break end
+      if string.sub(name, 1, 1) ~= '(' then 
+        dump = dump ..  ""    "" .. name .. ""="" .. tostring(value) .. ""\n"" 
+      end
+      i = i + 1
+    end
+    -- get varargs (these use negative indices)
+    i = 1
+    while true do
+      local name, value = debug.getlocal(f, -i)
+      -- `not name` should be enough, but LuaJIT 2.0.0 incorrectly reports `(*temporary)` names here
+      if not name or name ~= ""(*vararg)"" then break end
+      dump = dump ..  ""    "" .. name .. ""="" .. tostring(value) .. ""\n""
+      i = i + 1
+    end
+    -- get upvalues
+    i = 1
+    while func do -- check for func as it may be nil for tail calls
+      local name, value = debug.getupvalue(func, i)
+      if not name then break end
+      dump = dump ..  ""    "" .. name .. ""="" .. tostring(value) .. ""\n""
+      i = i + 1
+    end
+    return dump
+  end
+  local dump = """"
+  for i = 3, 100 do
+    local source = debug.getinfo(i, ""S"")
+    if not source then break end
+    dump = dump .. ""- stack"" .. tostring(i-2) .. ""\n""
+    dump = dump .. vars(i+1)
+    if source.what == 'main' then break end
+  end
+  printerror(dump)
+end
+";
+
+            LuaState.get(L).doString(dumpstackfunc);
 
 #if UNITY_ANDROID
 			// fix android performance drop with JIT on according to luajit mailist post
@@ -804,6 +859,9 @@ end
                 errorDelegate(error);
             }
 
+            LuaDLL.lua_getglobal(L, "dumpstack");
+            LuaDLL.lua_call(L, 0, 0);
+
             return 0;
 		}
 
@@ -895,16 +953,12 @@ end
 			LuaDLL.lua_remove(l, err);
 		}
 
-        /// <summary>
-        /// lua中的print输出, 用自己的函数替换了原来的
-        /// </summary>
-        /// <param name="L"></param>
-        /// <returns></returns>
+        private static StringBuilder s = new StringBuilder();
 		[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
 		internal static int print(IntPtr L)
 		{
 			int n = LuaDLL.lua_gettop(L);
-			string s = "";
+            s.Length = 0;
 
 			//get lua function tostring
 			LuaDLL.lua_getglobal(L, "tostring");
@@ -913,26 +967,76 @@ end
 			{
 				if (i > 1)
 				{
-					s += "    ";
+					s.Append("    ");
 				}
 
 				LuaDLL.lua_pushvalue(L, -1);
 				LuaDLL.lua_pushvalue(L, i);
 
 				LuaDLL.lua_call(L, 1, 1);
-				s += LuaDLL.lua_tostring(L, -1);
+				s.Append(LuaDLL.lua_tostring(L, -1));
 				LuaDLL.lua_pop(L, 1);
 			}
 			LuaDLL.lua_settop(L, n);
-			Logger.Log(s);
-			if (logDelegate != null)
-			{
-				logDelegate(s);
-			}
+            
+            LuaDLL.lua_getglobal(L, "debug");
+            LuaDLL.lua_getfield(L, -1, "traceback");
+            LuaDLL.lua_call(L, 0, 1);
+            s.Append("\n");
+            s.Append(LuaDLL.lua_tostring(L, -1));
+            LuaDLL.lua_pop(L, 1);
+            Logger.Log(s.ToString(), true);
+
+            if (logDelegate != null)
+            {
+                logDelegate(s.ToString());
+            }
+
 			return 0;
 		}
+        
+        // copy from print()
+        [MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+        internal static int printerror(IntPtr L)
+        {
+            int n = LuaDLL.lua_gettop(L);
+            s.Length = 0;
 
-		[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
+            LuaDLL.lua_getglobal(L, "tostring");
+
+            for (int i = 1; i <= n; i++)
+            {
+                if (i > 1)
+                {
+                    s.Append("    ");
+                }
+
+                LuaDLL.lua_pushvalue(L, -1);
+                LuaDLL.lua_pushvalue(L, i);
+
+                LuaDLL.lua_call(L, 1, 1);
+                s.Append(LuaDLL.lua_tostring(L, -1));
+                LuaDLL.lua_pop(L, 1);
+            }
+            LuaDLL.lua_settop(L, n);
+            
+            LuaDLL.lua_getglobal(L, "debug");
+            LuaDLL.lua_getfield(L, -1, "traceback");
+            LuaDLL.lua_call(L, 0, 1);
+            s.Append("\n");
+            s.Append(LuaDLL.lua_tostring(L, -1));
+            LuaDLL.lua_pop(L, 1);
+            Logger.LogError(s.ToString(), true);
+
+            if (errorDelegate != null)
+            {
+                errorDelegate(s.ToString());
+            }
+
+            return 0;
+        }
+
+        [MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
 		internal static int loadfile(IntPtr L)
 		{
 			loader(L);
@@ -1112,28 +1216,43 @@ end
         /// <returns></returns>
 		internal static byte[] loadFile(string fn)
 		{
-			try
-			{
+			try {
 				byte[] bytes;
 				if (loaderDelegate != null)
-					bytes = loaderDelegate(fn);
-				else
-				{
-#if !SLUA_STANDALONE
-					fn = fn.Replace(".", "/");
-					TextAsset asset = (TextAsset)Resources.Load(fn);
+					bytes = loaderDelegate (fn);
+				else {
+					#if !SLUA_STANDALONE
+					fn = fn.Replace (".", "/");
+
+					TextAsset asset = null;
+
+					#if UNITY_EDITOR
+
+					if (SLuaSetting.Instance.jitType == JITBUILDTYPE.none) {
+						asset = (TextAsset)Resources.Load (fn);
+					}
+					// 测试用
+					else if (SLuaSetting.Instance.jitType == JITBUILDTYPE.X86) {
+						asset = (TextAsset)UnityEditor.AssetDatabase.LoadAssetAtPath<TextAsset> ("Assets/Slua/jit/jitx86/" + fn + ".bytes");
+					} else if (SLuaSetting.Instance.jitType == JITBUILDTYPE.X64) {
+						asset = (TextAsset)UnityEditor.AssetDatabase.LoadAssetAtPath<TextAsset> ("Assets/Slua/jit/jitx64/" + fn + ".bytes");
+					} else if (SLuaSetting.Instance.jitType == JITBUILDTYPE.GC64) {
+						asset = (TextAsset)UnityEditor.AssetDatabase.LoadAssetAtPath<TextAsset> ("Assets/Slua/jit/jitgc64/" + fn + ".bytes");
+					}
+					#else
+					asset = (TextAsset)Resources.Load(fn);
+					#endif
+
 					if (asset == null)
 						return null;
 					bytes = asset.bytes;
-#else
-				    bytes = File.ReadAllBytes(fn);
-#endif
+					#else
+					bytes = File.ReadAllBytes(fn);
+					#endif
 				}
 				return bytes;
-			}
-			catch (Exception e)
-			{
-				throw new Exception(e.Message);
+			} catch (Exception e) {
+				throw new Exception (e.Message);
 			}
 		}
 

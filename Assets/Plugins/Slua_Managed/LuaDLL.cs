@@ -348,8 +348,8 @@ namespace SLua
         }
 
         /// <summary>
-        /// å‰ææ˜¯å…ˆå°†valueå‹å…¥æ ˆä¸­
-        /// è®¾ç½® global è¡¨ä¸­,t[name] =value
+        /// Ç°ÌáÊÇÏÈ½«valueÑ¹ÈëÕ»ÖĞ
+        /// ÉèÖÃ global ±íÖĞ,t[name] =value
         /// </summary>
         /// <param name="luaState"></param>
         /// <param name="name"></param>
@@ -558,9 +558,9 @@ namespace SLua
         public static void lua_pushcfunction(IntPtr luaState, LuaCSFunction function)
         {
 #if SLUA_STANDALONE
-            // Add all LuaCSFunctionï¿½ï¿½ or they will be GC collected!  (problem at windows, .net framework 4.5, `CallbackOnCollectedDelegated` exception)
+            // Add all LuaCSFunction?? or they will be GC collected!  (problem at windows, .net framework 4.5, `CallbackOnCollectedDelegated` exception)
             //See https://manski.net/2012/06/pinvoke-tutorial-pinning-part-4/
-            //é˜²æ­¢GCæ”¶é›†
+            //·ÀÖ¹GCÊÕ¼¯
             GCHandle.Alloc(function);
 #endif
             IntPtr fn = Marshal.GetFunctionPointerForDelegate(function);
@@ -585,12 +585,19 @@ namespace SLua
             int strlen;
 
             IntPtr str = luaS_tolstring32(luaState, index, out strlen); // fix il2cpp 64 bit
-
-            if (str != IntPtr.Zero)
+            string s = null;
+            if (strlen > 0 && str != IntPtr.Zero)
             {
-                return Marshal.PtrToStringAnsi(str, strlen);
+                s = Marshal.PtrToStringAnsi(str);
+                // fallback method
+                if(s == null)
+                {
+                    byte[] b = new byte[strlen];
+                    Marshal.Copy(str, b, 0, strlen);
+                    s = System.Text.Encoding.Default.GetString(b);
+                }
             }
-            return null;
+            return (s == null) ? string.Empty : s;
         }
 
 		public static byte[] lua_tobytes(IntPtr luaState, int index)
@@ -635,7 +642,7 @@ namespace SLua
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern void lua_getfield(IntPtr luaState, int stackPos, string meta);
         /// <summary>
-        /// è·å–registerä¸­çš„metaå¯¹åº”çš„å…ƒç´ 
+        /// »ñÈ¡registerÖĞµÄmeta¶ÔÓ¦µÄÔªËØ
         /// </summary>
         /// <param name="luaState"></param>
         /// <param name="meta"></param>
@@ -717,7 +724,7 @@ namespace SLua
         public static void lua_pushcclosure(IntPtr l, LuaCSFunction f, int nup)
         {
 #if SLUA_STANDALONE
-            // Add all LuaCSFunctionï¿½ï¿½ or they will be GC collected!  (problem at windows, .net framework 4.5, `CallbackOnCollectedDelegated` exception)
+            // Add all LuaCSFunction£¬ or they will be GC collected!  (problem at windows, .net framework 4.5, `CallbackOnCollectedDelegated` exception)
             GCHandle.Alloc(f);
 #endif
             IntPtr fn = Marshal.GetFunctionPointerForDelegate(f);
@@ -758,8 +765,8 @@ namespace SLua
         public static extern void luaS_setDataVec(IntPtr l, int p, float x, float y, float z, float w);
 
         /// <summary>
-        /// æ˜¯ä¸€ä¸ªtableï¼Œå¹¶ä¸”æœ‰metatableï¼Œmetatable[__typename] == t å¦‚æœt != null
-        /// è¿”å›1 è¡¨ç¤ºtrueï¼Œ 0è¡¨ç¤ºFALSE
+        /// ÊÇÒ»¸ötable£¬²¢ÇÒÓĞmetatable£¬metatable[__typename] == t Èç¹ût != null
+        /// ·µ»Ø1 ±íÊ¾true£¬ 0±íÊ¾FALSE
         /// </summary>
         /// <param name="l"></param>
         /// <param name="p"></param>
@@ -795,7 +802,7 @@ namespace SLua
 
 
         /// <summary>
-        /// //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½__baseï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ï²ï¿½ï¿½ï¿½, È»ï¿½ï¿½ï¿½Ğ¶ï¿½__typenameï¿½Ç·ï¿½ï¿½ï¿½tï¿½ï¿½Í¬
+        /// //??????__base???????????, ????§Ø?__typename?????t???
         /// </summary>
         /// <param name="l"></param>
         /// <param name="index"></param>

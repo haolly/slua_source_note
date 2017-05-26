@@ -104,7 +104,7 @@ namespace SLua
 			}
 
 		}
-	
+			
 		[MenuItem("SLua/All/Make")]
 		static public void GenerateAll()
 		{
