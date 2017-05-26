@@ -548,6 +548,7 @@ return index
         /// <param name="t"></param>
 		public static void getTypeTable(IntPtr l, string t)
 		{
+			// this is like the class type
 			newTypeTable(l, t);
 			// for static
 			LuaDLL.lua_newtable(l);
@@ -607,7 +608,7 @@ return index
         /// -1 is instance table
 		/// -2 is static table
 		/// 设置instance table 和 static table 的一些方法，分别将其注册到register table中
-		/// register instance and static table to the register table, set self table's __fullname,
+		/// register instance and static table to the register table
 		/// set self's metable is static table
 		/// register the static table to the register with the name of self.fullName,
 		/// 然后将这个type的 instance table 以QAName注册到register中
@@ -670,9 +671,9 @@ return index
         /// -1 is static table
 		/// 和createInstanceMeta类似analogy
 		/// __fullname is in self table, __typename is in instance table, __parent is in instance table and static table
-		/// register the static table to the register with the name of self.fullName, TODO: what is the use ?
+		/// register the static table to the register with the name of self.fullName
 		/// NOTE: set self's metatable as the static table
-		/// TODO: refer to http://lua-users.org/wiki/MetatableEvents for the metamethod's infomation
+		/// NOTE: refer to http://lua-users.org/wiki/MetatableEvents for the metamethod's infomation
  		/// </summary>
         /// <param name="l"></param>
         /// <param name="con"></param>
@@ -681,10 +682,12 @@ return index
 		{
 			//set __fullname in self table, which is AQName
 			//NOTE: CLUE, 根据 __fullname 可以找到 AQName, 根据 AQName 可以找到 instance table
+			//use this field to check class type, ref isTypeTable()
 			LuaDLL.lua_pushstring(l, ObjectCache.getAQName(self));
 			LuaDLL.lua_setfield(l, -3, "__fullname");
 
             //下面两个metamethod 控制了字段的赋值和获取值的方式, see init function
+			//TODO: 重点，这两个函数怎么工作的？
 			index_func.push(l);
 			LuaDLL.lua_setfield(l, -2, "__index");
 
@@ -708,7 +711,7 @@ return index
 			LuaDLL.lua_setmetatable(l, -3);
 
             //register static table with FullName
-			//every direct child's static table will set __parent field with this table, see, createTypeMetatable
+			//so child table could get parent's static table by parent's FullName, ref createTypeMetatable()
 			LuaDLL.lua_setfield(l, LuaIndexes.LUA_REGISTRYINDEX, self.FullName);
 		}
 
@@ -718,7 +721,7 @@ return index
 		/// 设置__typename 和__index/__newindex 方法到instance table 中，还有一些基本的加减乘除大小比较函数
 		/// 然后将这个type的 instance table 以QAName注册到register中
 		/// NOTE: each instance table has __gc metamethod,
-		/// TODO: 感觉这个instance 是要作为metatable 来使用的, 但是在哪用的？
+		/// NOTE: 在luaS_pushobject 中设置instance table 为 index(userData) 的metatable
   		/// </summary>
         /// <param name="l"></param>
         /// <param name="self"></param>
@@ -1040,9 +1043,7 @@ return index
 		}
 
         /// <summary>
-		//如果有__base，则向上查找, 然后判断metatable 的 __typename是否和t相同
-		//TODO: where the __base and __typename come from ??
-		//NOTE: __typename is set in the instance table when create the lua table which represent the c# class
+		/// Is exported class ?
         /// </summary>
         /// <param name="l"></param>
         /// <param name="p"></param>
@@ -1213,6 +1214,13 @@ return index
 			return true;
 		}
 
+		/// <summary>
+		/// Only check lua value type
+		/// </summary>
+		/// <param name="l"></param>
+		/// <param name="p"></param>
+		/// <param name="t"></param>
+		/// <returns></returns>
 		static public bool luaTypeCheck(IntPtr l, int p, string t)
 		{
 			return LuaDLL.luaS_checkluatype(l, p, t) != 0;
@@ -1521,7 +1529,7 @@ return index
         /// <summary>
         /// if o is value type, push it directly, if o is a ref in register, push ref
 		/// otherwise, push o and create userdata which stores the index in the cache list
-		/// TODO: how to get the vaue?
+		/// NOTE: how to get the vaue? use checkVar
 		/// TODO: what is the difference between pushObject(push to cache list) and push(not push to cache list) ?
    		/// </summary>
         /// <param name="l"></param>

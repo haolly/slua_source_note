@@ -140,8 +140,7 @@ namespace SLua
 		}
 
         /// <summary>
-        /// Set metamethods in this table, so this table is gonna to be a metatable,
-		/// TODO: where does it to be set as a metatable to what table ?
+        /// Set metamethods in this table, so this table is gonna to be a metatable, for all Array Types
         /// </summary>
         /// <param name="l"></param>
 		static new public void init(IntPtr l)

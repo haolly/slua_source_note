@@ -180,7 +180,6 @@ return Class
 
 					object ret = target.Invoke(args);
 					pushValue(l, true);
-					//TODO: pushVar 和 pushValue 有什么区别？
 					pushVar(l, ret);
 					return 2;
 				}
@@ -301,9 +300,9 @@ return Class
 
         /// <summary>
         /// 改变self table 的metatable 为相应目标对象的 instance table
-		/// TODO: 所以，在导出c#类的时候，在哪里设置了self 的metatable为　instance table ??
-        /// </summary>
-        /// <param name="l"></param>
+		/// NOTE: 所以，在导出c#类的时候，在哪里设置了self 的metatable为　instance table ??
+		/// NOTE:在luaS_pushobject 的时候设置的
+		/// the first argument is a userdata, the seconds argument is TypeTable(self table)
         /// <returns></returns>
 		[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
 		static public int As(IntPtr l)

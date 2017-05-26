@@ -240,7 +240,6 @@ static void setmetatable(lua_State *L, int p, int what) {
 
 
 //是一个table，并且有metatable，metatable[__typename] == t 如果t != null
-//TODO: where did the metatable got set ? only in LuaValueType ?
 //返回1 表示true， 0表示FALSE
 LUA_API int luaS_checkluatype(lua_State *L, int p, const char *t) {
 	int top;
@@ -493,7 +492,6 @@ LUA_API int luaS_getcacheud(lua_State *l, int index, int cref) {
 }
 
 //如果有__base，则向上查找, 然后判断metatable 的 __typename是否和t相同
-//TODO: where the __base and __typename come from ??
 //NOTE: __typename is set in the instance table when create the lua table which represent the c# class
 LUA_API int luaS_subclassof(lua_State *l, int p, const char* t) {
 
@@ -512,7 +510,7 @@ LUA_API int luaS_subclassof(lua_State *l, int p, const char* t) {
 		lua_settop(l, top);
 		return 0;
 	}
-
+	//then the top is a userdata
 	if (t != NULL) {
 		lua_getmetatable(l, -1);
 		lua_getfield(l, -1, "__typename");
@@ -521,7 +519,7 @@ LUA_API int luaS_subclassof(lua_State *l, int p, const char* t) {
 		lua_settop(l, top);
 		return ok == 0;
 	}
-	return 1;
+	return 1;//true
 }
 
 

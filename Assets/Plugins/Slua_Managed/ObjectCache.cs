@@ -330,8 +330,10 @@ namespace SLua
 
         /// <summary>
         /// analogy with function push(IntPtr l, object o, bool checkReflect)
-		/// TODO: 为什么要吧Array单独出来? only difference is the QAName
-        /// </summary>
+		/// NOTE: 为什么要把Array单独出来? only difference is the QAName
+		/// NOTE: 这里的tName 是用于查找metatable 的，而这个metatable 是作为userdata 的metatable使用的，
+		/// 所有的数组都有一个共同的metatable LuaArray
+  		///</summary>
         /// <param name="l"></param>
         /// <param name="o"></param>
 		internal void push(IntPtr l, Array o)

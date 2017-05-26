@@ -766,8 +766,9 @@ namespace SLua
         public static extern void luaS_setDataVec(IntPtr l, int p, float x, float y, float z, float w);
 
         /// <summary>
+        /// NOTE: Only check lua value type
         /// 是一个table，并且有metatable，metatable[__typename] == t 如果t != null
-        /// TODO: where did the metatable got set ? Only in LuaValueType ?
+        /// NOTE: where did the metatable got set ? in LuaValueType
         /// 返回1 表示true， 0表示FALSE
         /// </summary>
         /// <param name="l"></param>
@@ -778,10 +779,11 @@ namespace SLua
         public static extern int luaS_checkluatype(IntPtr l, int p, string t);
 
         /// <summary>
+        /// NOTE: the table to be set as metatable for userdata is instance table
+        /// TODO: why does it set the metatable of the userdata(which is the only index value store in it)?
         /// create an userdata to store index(int), push it on stack(if gco is true, push the userdata to register cref at index index),
         /// set the metatable of the userdata to
-        /// the table associated to name t(luaL_getmetatable()), which is set when create new table of c# class
-        /// TODO: why does it set the metatable of the userdata(which is the only index value store in it)?
+        /// the table associated to name t(luaL_getmetatable()), which is AQName
         /// left the userdata on the stack
         /// </summary>
         /// <param name="l"></param>
@@ -805,8 +807,12 @@ namespace SLua
 
 
         /// <summary>
+        /// 如果有__base，则向上查找, 然后判断metatable 的 __typename是否和t相同
+        /// TODO: __base 在哪里设置的 ?
+        /// NOTE: __typename is set in the instance table when create the lua table which represent the c# class
+        /// </summary>
         /// <param name="l"></param>
-        /// <param name="index"></param>
+        /// <param name="index">the luatype at index is a LuaTable</param>
         /// <param name="t"></param>
         /// <returns></returns>
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
