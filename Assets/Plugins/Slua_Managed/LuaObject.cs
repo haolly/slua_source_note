@@ -70,6 +70,14 @@ namespace SLua
 		}
 	}
 
+	[AttributeUsage(AttributeTargets.Method)]
+	public class LuaOverrideAttribute : System.Attribute {
+		public string fn;
+		public LuaOverrideAttribute(string fn) {
+			this.fn = fn;
+		}
+	}
+
 	public class OverloadLuaClassAttribute : System.Attribute {
 		public OverloadLuaClassAttribute(Type target) {
 			targetType = target;
@@ -103,19 +111,15 @@ namespace SLua
 		static protected LuaFunction newindex_func;
 		static protected LuaFunction index_func;
 
-		delegate void PushVarDelegate(IntPtr l, object o);
-		static Dictionary<Type, PushVarDelegate> typePushMap = new Dictionary<Type, PushVarDelegate>();
-
 		internal const int VersionNumber = 0x1201;
 
 		public static void init(IntPtr l)
 		{
 			/// <summary>
+			/// ud is a table, may be a static table or an instance table
 			/// h[1],h[2] is get and set function, see function AddMember
 			/// 獲取當前ud 的元表，從元表中獲取k所對應的值，如果沒有，則去__parent中去找(set in function createTypeMetatable())
 			///	如果有，h[2]應該是一個Set函數
-			/// TODO: 这里getmetatable获取的是一个static table, 难道不能设置instance table中的值 ??
-			/// <see createTypeMetatable>
 			/// /// </summary>
 			/// <returns></returns>
 			string newindexfun = @"
@@ -145,8 +149,8 @@ return newindex
 ";
 
 			/// <summary>
-			/// analogy with newindex, if value is a function, call it, if value is a table, this table contains get/set function
-			/// NOTE: only get in static table ??
+			/// ud is a table, may be a static table or an instance table
+			/// analogy with newindex, if value is a function, return it, if value is a table, this table contains get/set function
 			/// </summary>
 			/// <returns></returns>
 			string indexfun = @"
@@ -194,18 +198,9 @@ return index
 
 			LuaDLL.lua_newtable(l);
 			LuaDLL.lua_setglobal(l, DelgateTable);
-
-
-			setupPushVar();
 		}
 		#region Basic Object function
 
-		/// <summary>
-		/// TODO:
-		/// /// 爲什麼push多一個true ？？
-		/// </summary>
-		/// <param name="l"></param>
-		/// <returns></returns>
 		[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
 		static public int ToString(IntPtr l)
 		{
@@ -272,9 +267,6 @@ return index
 		}
 		#endregion
 
-        /// <summary>
-        /// 设置各种类型对对应的push函数，这个push函数能将正确的对象压入栈中
-        /// </summary>
 		static void setupPushVar()
 		{
 			typePushMap[typeof(float)] = (IntPtr L, object o) =>
@@ -322,7 +314,7 @@ return index
 				   LuaDLL.lua_pushinteger(L, (byte)o);
 			   };
 
-            //long
+
 			typePushMap[typeof(Int64)] =
 				typePushMap[typeof(UInt64)] =
 				(IntPtr L, object o) =>
@@ -384,13 +376,6 @@ return index
 			};
 		}
 
-        /// <summary>
-        /// recursive get field f in table(which must have a metatable)
-        /// </summary>
-        /// <param name="l"></param>
-        /// <param name="f"></param>
-        /// <param name="tip"></param>
-        /// <returns></returns>
 		static int getOpFunction(IntPtr l, string f, string tip)
 		{
 			int err = pushTry(l);
@@ -563,6 +548,7 @@ return index
         /// <param name="t"></param>
 		public static void getTypeTable(IntPtr l, string t)
 		{
+			// this is like the class type
 			newTypeTable(l, t);
 			// for static
 			LuaDLL.lua_newtable(l);
@@ -622,7 +608,7 @@ return index
         /// -1 is instance table
 		/// -2 is static table
 		/// 设置instance table 和 static table 的一些方法，分别将其注册到register table中
-		/// register instance and static table to the register table, set self table's __fullname,
+		/// register instance and static table to the register table
 		/// set self's metable is static table
 		/// register the static table to the register with the name of self.fullName,
 		/// 然后将这个type的 instance table 以QAName注册到register中
@@ -640,9 +626,9 @@ return index
 			LuaDLL.lua_pushstring(l, "__parent");
 			while (parent != null && parent != typeof(object) && parent != typeof(ValueType))
 			{
-                // GetParent definition
+                // GetParent's instance table
 				// why in global table?
-				// cause every type's instance table will be register in global table with their QualifiedName
+				// cause every type's instance table will be register in global table as a metatable with their QualifiedName
 				// see completeInstanceMeta()
 				LuaDLL.luaL_getmetatable(l, ObjectCache.getAQName(parent));
 				// if parentType is not exported to lua, find high hierachy parent recesive recursively
@@ -653,12 +639,13 @@ return index
 				}
 				else
 				{
-					//set __parent field to the finded parent table in instance table
+					//set __parent field associate with the finded parent in instance table
 					LuaDLL.lua_rawset(l, -3);
 
 					//set __parent field in static table
 					//each type will register itself's static table with fullname in register
 					LuaDLL.lua_pushstring(l, "__parent");
+					//the parent.FullName is registered in function completeTypeMeta
 					LuaDLL.luaL_getmetatable(l, parent.FullName);
 					LuaDLL.lua_rawset(l, -4);
 
@@ -684,19 +671,23 @@ return index
         /// -1 is static table
 		/// 和createInstanceMeta类似analogy
 		/// __fullname is in self table, __typename is in instance table, __parent is in instance table and static table
-		/// register the static table to the register with the name of self.fullName, TODO: what is the use ?
-		/// set self's metatable is the static table
-		/// TODO: refer to http://lua-users.org/wiki/MetatableEvents for the metamethod's infomation
+		/// register the static table to the register with the name of self.fullName
+		/// NOTE: set self's metatable as the static table
+		/// NOTE: refer to http://lua-users.org/wiki/MetatableEvents for the metamethod's infomation
  		/// </summary>
         /// <param name="l"></param>
         /// <param name="con"></param>
         /// <param name="self"></param>
 		static void completeTypeMeta(IntPtr l, LuaCSFunction con, Type self)
 		{
-			//set __fullname in self table
+			//set __fullname in self table, which is AQName
+			//NOTE: CLUE, 根据 __fullname 可以找到 AQName, 根据 AQName 可以找到 instance table
+			//use this field to check class type, ref isTypeTable()
 			LuaDLL.lua_pushstring(l, ObjectCache.getAQName(self));
 			LuaDLL.lua_setfield(l, -3, "__fullname");
 
+            //下面两个metamethod 控制了字段的赋值和获取值的方式, see init function
+			//TODO: 重点，这两个函数怎么工作的？
 			index_func.push(l);
 			LuaDLL.lua_setfield(l, -2, "__index");
 
@@ -705,19 +696,22 @@ return index
 
 			if (con == null) con = noConstructor;
 
-			//TODO: when is constractor function called ?
+			//NOTE: when is constractor function called ?
+			//This table is set as a metatable for self's table, so when self table is called as a function, the constructor function will be called
 			pushValue(l, con);
 			LuaDLL.lua_setfield(l, -2, "__call");
 
+            //设置self table 的 metatable 后，这个函数打印出 __fullname 字段
 			LuaDLL.lua_pushcfunction(l, typeToString);
 			LuaDLL.lua_setfield(l, -2, "__tostring");
 
-			//set self's metatable is the static table,
+			//set self's metatable as the static table,
 			//the static table has __index/__newindex/__call/__tostring metamethod
 			LuaDLL.lua_pushvalue(l, -1);
 			LuaDLL.lua_setmetatable(l, -3);
 
             //register static table with FullName
+			//so child table could get parent's static table by parent's FullName, ref createTypeMetatable()
 			LuaDLL.lua_setfield(l, LuaIndexes.LUA_REGISTRYINDEX, self.FullName);
 		}
 
@@ -727,12 +721,13 @@ return index
 		/// 设置__typename 和__index/__newindex 方法到instance table 中，还有一些基本的加减乘除大小比较函数
 		/// 然后将这个type的 instance table 以QAName注册到register中
 		/// NOTE: each instance table has __gc metamethod,
-		/// TODO: 感觉这个instance 是要作为metatable 来使用的, 但是在哪用的？
+		/// NOTE: 在luaS_pushobject 中设置instance table 为 index(userData) 的metatable
   		/// </summary>
         /// <param name="l"></param>
         /// <param name="self"></param>
 		private static void completeInstanceMeta(IntPtr l, Type self)
 		{
+            //TODO: 什么时候用到的呢？
 			LuaDLL.lua_pushstring(l, "__typename");
 			LuaDLL.lua_pushstring(l, self.Name);
 			LuaDLL.lua_rawset(l, -3);
@@ -744,6 +739,7 @@ return index
 			newindex_func.push(l);
 			LuaDLL.lua_setfield(l, -2, "__newindex");
 
+            //mathematic operators, metamethod
 			pushValue(l, lua_add);
 			LuaDLL.lua_setfield(l, -2, "__add");
 			pushValue(l, lua_sub);
@@ -763,6 +759,7 @@ return index
 			pushValue(l, lua_tostring);
 			LuaDLL.lua_setfield(l, -2, "__tostring");
 
+            //__gc metamethod will be invoked when a userdata is set to be garbage collected
 			LuaDLL.lua_pushcfunction(l, lua_gc);
 			LuaDLL.lua_setfield(l, -2, "__gc");
 
@@ -771,7 +768,9 @@ return index
 				LuaDLL.lua_pushvalue(l, -1);
                 LuaDLL.lua_setglobal(l, self.FullName + ".Instance");
 			}
-			//set instance table in register and pop it from stack
+			//set instance table in register and pop it from stack,
+			//every direct child's instance table will set __parent field with this table, see, createTypeMetatable
+			//NOTE: 在luaS_pushobject 中设置instance table 为 index(userData) 的metatable
 			LuaDLL.lua_setfield(l, LuaIndexes.LUA_REGISTRYINDEX,  ObjectCache.getAQName(self));
 		}
 
@@ -824,6 +823,8 @@ return index
 
         /// <summary>
         /// 给type的table注册方法，分别在static table 或者 instance table 中
+        /// NOTE: addMember will push a wrapped PCallLuaCSFunction, so every function pushed by addMember **must** return two result,
+		/// the first is a status indicator
         /// </summary>
         /// <param name="l"></param>
         /// <param name="func"></param>
@@ -877,7 +878,7 @@ return index
 		[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
 		static public int luaGC(IntPtr l)
 		{
-            //NOTE: ~~the index is the address of pointer, which is an unique int ~~
+            //TODO: why the index is 1 ?
 			int index = LuaDLL.luaS_rawnetobj(l, 1);
 			if (index > 0)
 			{
@@ -913,6 +914,11 @@ return index
 			}
 		}
 
+        /// <summary>
+        /// left the userdata on the stack
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="o"></param>
 		public static void pushObject(IntPtr l, object o)
 		{
 			ObjectCache oc = ObjectCache.get(l);
@@ -1016,10 +1022,9 @@ return index
 		}
 
         /// <summary>
-        /// if this table has __fullname field, return true, which is set when create the represent of new c# clas's slua table
-		/// TODO: this item in position p is a type class, which store type infomation ? like **Type** in c#,
-		/// <see> matchType(IntPtr l, int p, LuaTypes lt, Type t)
-        /// /// </summary>
+        /// if this table has __fullname field, return true, which is set when create the represent of c# class, in self table
+		/// NOTE: the __fullname field is AQName
+        /// </summary>
         /// <param name="l"></param>
         /// <param name="p"></param>
         /// <returns></returns>
@@ -1038,7 +1043,7 @@ return index
 		}
 
         /// <summary>
-        /// TODO:
+		/// Is exported class ?
         /// </summary>
         /// <param name="l"></param>
         /// <param name="p"></param>
@@ -1209,13 +1214,13 @@ return index
 			return true;
 		}
 
-        /// <summary>
-        /// <see LuaDLL.luaS_checkluatype>
-        /// </summary>
-        /// <param name="l"></param>
-        /// <param name="p"></param>
-        /// <param name="t"></param>
-        /// <returns></returns>
+		/// <summary>
+		/// Only check lua value type
+		/// </summary>
+		/// <param name="l"></param>
+		/// <param name="p"></param>
+		/// <param name="t"></param>
+		/// <returns></returns>
 		static public bool luaTypeCheck(IntPtr l, int p, string t)
 		{
 			return LuaDLL.luaS_checkluatype(l, p, t) != 0;
@@ -1257,31 +1262,39 @@ return index
 			return oc.get(l, p);
 		}
 
-		static public bool checkArray<T>(IntPtr l, int p, out T[] ta)
-		{
-			if (LuaDLL.lua_type(l, p) == LuaTypes.LUA_TTABLE)
-			{
-				int n = LuaDLL.lua_rawlen(l, p);
-				ta = new T[n];
-				for (int k = 0; k < n; k++)
-				{
-					LuaDLL.lua_rawgeti(l, p, k + 1);
-					ta[k]=(T)Convert.ChangeType(checkVar(l, -1),typeof(T));
-					LuaDLL.lua_pop(l, 1);
-				}
-				return true;
-			}
-			else
-			{
-				Array array = checkObj(l, p) as Array;
-				if (array == null)
-					throw new ArgumentException ("expect array");
-				ta = array as T[];
-				return ta!=null;
-			}
-		}
+        static public bool checkArray<T>(IntPtr l, int p, out T[] ta)
+        {
+            if (LuaDLL.lua_type(l, p) == LuaTypes.LUA_TTABLE)
+            {
+                int n = LuaDLL.lua_rawlen(l, p);
+                ta = new T[n];
+                for (int k = 0; k < n; k++)
+                {
+                    LuaDLL.lua_rawgeti(l, p, k + 1);
+                    object o = checkVar(l, -1);
+                    Type fromT = o.GetType();
+                    Type toT = typeof(T);
+                    if (toT.IsAssignableFrom(fromT))
+                    {
+                        ta[k] = (T)o;
+                    }
+                    else
+                    {
+                        ta[k] = (T)Convert.ChangeType(o, typeof(T));
+                    }
+                    LuaDLL.lua_pop(l, 1);
+                }
+                return true;
+            }
+            else
+            {
+                Array array = checkObj(l, p) as Array;
+                ta = array as T[];
+                return ta != null;
+            }
+        }
 
-		static public bool checkParams<T>(IntPtr l, int p, out T[] pars) where T:class
+        static public bool checkParams<T>(IntPtr l, int p, out T[] pars) where T:class
 		{
 			int top = LuaDLL.lua_gettop(l);
 			if (top - p >= 0)
@@ -1411,6 +1424,7 @@ return index
 
         /// <summary>
         /// 根据p在 lua 中的类型，返回相应的c# 数据类型
+		/// TODO: 感觉像是pushVar 的相反函数
         /// </summary>
         /// <param name="l"></param>
         /// <param name="p"></param>
@@ -1515,7 +1529,7 @@ return index
         /// <summary>
         /// if o is value type, push it directly, if o is a ref in register, push ref
 		/// otherwise, push o and create userdata which stores the index in the cache list
-		/// TODO: how to get the vaue?
+		/// NOTE: how to get the vaue? use checkVar
 		/// TODO: what is the difference between pushObject(push to cache list) and push(not push to cache list) ?
    		/// </summary>
         /// <param name="l"></param>
@@ -1531,9 +1545,9 @@ return index
 
 			Type t = o.GetType();
 
-
-			PushVarDelegate push;
-			if (typePushMap.TryGetValue(t, out push))
+            LuaState.PushVarDelegate push;
+            LuaState ls = LuaState.get(l);
+			if (ls.tryGetTypePusher(t, out push))
 				push(l, o);
 			else if (t.IsEnum)
 			{
@@ -1560,6 +1574,7 @@ return index
 
         /// <summary>
         /// check the first position in the stack is not nil
+		/// NOTE: because checkSelf is used in member function, so checkObj use the index 1 as their argument
         /// </summary>
         /// <param name="l"></param>
         /// <returns></returns>

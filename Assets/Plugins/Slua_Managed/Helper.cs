@@ -183,7 +183,11 @@ return Class
 					pushVar(l, ret);
 					return 2;
 				}
-				//TODO: 這裏只是返回true，但是沒有返回結果，調用者怎麼判斷結果？
+				//NOTE: 這裏只是返回true，但是沒有返回結果，調用者怎麼判斷結果？
+				//return 1 indicate there are only one result returned, so extra return value is nil
+				//if there could not find a suitable constructor, CreateClass will return nil, so, the first return value **true** is handled by which part?
+				//the first true is a status indicator, checked in PCallLuaCSFunction, PCallLuaCSFunction will check the first returned value, and return the
+				//extra value
 				pushValue(l, true);
 				return 1;
 			}
@@ -294,6 +298,12 @@ return Class
 			}
 		}
 
+        /// <summary>
+        /// 改变self table 的metatable 为相应目标对象的 instance table
+		/// NOTE: 所以，在导出c#类的时候，在哪里设置了self 的metatable为　instance table ??
+		/// NOTE:在luaS_pushobject 的时候设置的
+		/// the first argument is a userdata, the seconds argument is TypeTable(self table)
+        /// <returns></returns>
 		[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
 		static public int As(IntPtr l)
 		{
@@ -303,7 +313,9 @@ return Class
 				{
 					return error(l, "No matched type of param 2");
 				}
+				//get __fullname
 				string meta = LuaDLL.lua_tostring(l, -1);
+                //get instance table
 				LuaDLL.luaL_getmetatable(l, meta);
 				LuaDLL.lua_setmetatable(l, 1);
 				pushValue(l, true);
@@ -369,6 +381,11 @@ return Class
 			return 2;
 		}
 
+        /// <summary>
+        /// NOTE: addMember will push a wrapped PCallLuaCSFunction, so every function pushed by addMember **must** return two result,
+		/// the first is a status indicator
+        /// </summary>
+        /// <param name="l"></param>
         static public void reg(IntPtr l)
 		{
             getTypeTable(l, "Slua");

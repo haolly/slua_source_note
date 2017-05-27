@@ -487,9 +487,10 @@ namespace SLua
 
 
         /// <summary>
-		/// 如果p处是一个userData, 这个userData必须是一个Type 类型的，返回这个Type
+		/// 如果p处是一个userData, 这个userData必须是一个Type 类型的TODO:，返回这个Type
 		/// 如果p处是一个string，从所有已经加载的程序集里面查找这个类型
-		/// 如果p处是一个lua table, 那么这个table应该是有对应的C#类型，其中__fullname 存储了AQName
+		/// 如果p处是一个lua table(ie,class type), 那么这个table应该是有对应的C#类型，
+		/// 其中__fullname 存储了AQName, which is set in completeTypeMeta()
   		/// </summary>
         /// <param name="l"></param>
         /// <param name="p"></param>
@@ -519,7 +520,8 @@ namespace SLua
                     }
                     else
                     {
-						//__fullname is set when create the lua table which represent a c# class, see: completeTypeMeta function
+						//__fullname is set when create the lua table which represent a c# class, in self table
+						//see: completeTypeMeta function
                         LuaDLL.lua_pushstring(l, "__fullname");
                         LuaDLL.lua_rawget(l, p);
                         tname = LuaDLL.lua_tostring(l, -1);

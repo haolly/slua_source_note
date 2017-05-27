@@ -298,6 +298,10 @@ namespace SLua
 
 		[DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
 		public static extern int lua_resume(IntPtr L, IntPtr from, int narg);
+        public static int lua_resume(IntPtr L, int narg)
+        {
+            return lua_resume(L, IntPtr.Zero, narg);
+        }
 
 		public static void lua_replace(IntPtr luaState, int index) {
 			lua_copy(luaState, -1, (index));
@@ -554,7 +558,7 @@ namespace SLua
         public static void lua_pushcfunction(IntPtr luaState, LuaCSFunction function)
         {
 #if SLUA_STANDALONE
-            // Add all LuaCSFunction�� or they will be GC collected!  (problem at windows, .net framework 4.5, `CallbackOnCollectedDelegated` exception)
+            // Add all LuaCSFunction?? or they will be GC collected!  (problem at windows, .net framework 4.5, `CallbackOnCollectedDelegated` exception)
             //See https://manski.net/2012/06/pinvoke-tutorial-pinning-part-4/
             //防止GC收集
             GCHandle.Alloc(function);
@@ -581,12 +585,19 @@ namespace SLua
             int strlen;
 
             IntPtr str = luaS_tolstring32(luaState, index, out strlen); // fix il2cpp 64 bit
-
-            if (str != IntPtr.Zero)
+            string s = null;
+            if (strlen > 0 && str != IntPtr.Zero)
             {
-                return Marshal.PtrToStringAnsi(str, strlen);
+                s = Marshal.PtrToStringAnsi(str);
+                // fallback method
+                if(s == null)
+                {
+                    byte[] b = new byte[strlen];
+                    Marshal.Copy(str, b, 0, strlen);
+                    s = System.Text.Encoding.Default.GetString(b);
+                }
             }
-            return null;
+            return (s == null) ? string.Empty : s;
         }
 
 		public static byte[] lua_tobytes(IntPtr luaState, int index)
@@ -681,11 +692,12 @@ namespace SLua
 
         /// <summary>
         /// //check the data in the stack postion index is a userData, or it's most __base is a userData.
-        /// if is, return the userdata(which may be an int) or -1 if it's not
+        /// if is, return the userdata(which is a int index) or -1 if it's not
+        /// ref luaS_pushobject
         /// </summary>
         /// <param name="luaState"></param>
-        /// <param name="obj"></param>
-        /// <returns></returns>
+        /// <param name="obj">the index in stack</param>
+        /// <returns>the index of cache list</returns>
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern int luaS_rawnetobj(IntPtr luaState, int obj);
 
@@ -713,7 +725,7 @@ namespace SLua
         public static void lua_pushcclosure(IntPtr l, LuaCSFunction f, int nup)
         {
 #if SLUA_STANDALONE
-            // Add all LuaCSFunction�� or they will be GC collected!  (problem at windows, .net framework 4.5, `CallbackOnCollectedDelegated` exception)
+            // Add all LuaCSFunction， or they will be GC collected!  (problem at windows, .net framework 4.5, `CallbackOnCollectedDelegated` exception)
             GCHandle.Alloc(f);
 #endif
             IntPtr fn = Marshal.GetFunctionPointerForDelegate(f);
@@ -754,7 +766,9 @@ namespace SLua
         public static extern void luaS_setDataVec(IntPtr l, int p, float x, float y, float z, float w);
 
         /// <summary>
+        /// NOTE: Only check lua value type
         /// 是一个table，并且有metatable，metatable[__typename] == t 如果t != null
+        /// NOTE: where did the metatable got set ? in LuaValueType
         /// 返回1 表示true， 0表示FALSE
         /// </summary>
         /// <param name="l"></param>
@@ -765,10 +779,12 @@ namespace SLua
         public static extern int luaS_checkluatype(IntPtr l, int p, string t);
 
         /// <summary>
+        /// NOTE: the table to be set as metatable for userdata is instance table
+        /// TODO: why does it set the metatable of the userdata(which is the only index value store in it)?
         /// create an userdata to store index(int), push it on stack(if gco is true, push the userdata to register cref at index index),
         /// set the metatable of the userdata to
-        /// the table associated to name t(luaL_getmetatable()), which is set when create new table of c# class
-        /// TODO: why does it set the metatable of the userdata(which is the only index value store in it)?
+        /// the table associated to name t(luaL_getmetatable()), which is AQName
+        /// left the userdata on the stack
         /// </summary>
         /// <param name="l"></param>
         /// <param name="index">the index in the cache list</param>
@@ -791,10 +807,12 @@ namespace SLua
 
 
         /// <summary>
-        /// //������__base�������ϲ���, Ȼ���ж�__typename�Ƿ���t��ͬ
+        /// 如果有__base，则向上查找, 然后判断metatable 的 __typename是否和t相同
+        /// TODO: __base 在哪里设置的 ?
+        /// NOTE: __typename is set in the instance table when create the lua table which represent the c# class
         /// </summary>
         /// <param name="l"></param>
-        /// <param name="index"></param>
+        /// <param name="index">the luatype at index is a LuaTable</param>
         /// <param name="t"></param>
         /// <returns></returns>
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]

@@ -194,6 +194,7 @@ namespace SLua
         /// <summary>
 		///the ref corresponding to the cache table, when the object to be pushed is a GC collectable,
 		/// cache the list index as a userdata to this table, TODO: why?
+		/// NOTE: the cache table is a weak table which value is weak
   		/// </summary>
 		int udCacheRef = 0;
         public class ObjEqualityComparer : IEqualityComparer<object>
@@ -210,10 +211,10 @@ namespace SLua
             }
         }
 
-        /// <summary>
-        /// create the cache corresponding to the state
-        /// </summary>
-        /// <param name="l"></param>
+
+        public Dictionary<object, int>.KeyCollection Objs { get { return objMap.Keys; } }
+
+
 		public ObjectCache(IntPtr l)
 		{
 			LuaDLL.lua_newtable(l);
@@ -255,10 +256,6 @@ namespace SLua
             return objMap.Count;
         }
 
-        /// <summary>
-        /// TODO: ~~the index is the address of pointer, which is an unique int, where did it got set in this cache ?~~
-        /// </summary>
-        /// <param name="index"></param>
 		internal void gc(int index)
 		{
 			object o;
@@ -295,7 +292,8 @@ namespace SLua
 		}
 
 		/// <summary>
-		/// p is the index in the cache list
+		/// p is the index in the stack
+		/// Get the real object
 		/// </summary>
 		/// <param name="l"></param>
 		/// <param name="p"></param>
@@ -328,32 +326,14 @@ namespace SLua
 			push(l, o, true);
 		}
 
-		internal void push(IntPtr l, object o, bool checkReflect)
-		{
-
-            //real push object into list
-			int index = allocID (l, o);
-			if (index < 0)
-				return;
-
-			bool gco = isGcObject(o);
-
-#if SLUA_CHECK_REFLECTION
-			int isReflect = LuaDLL.luaS_pushobject(l, index, getAQName(o), gco, udCacheRef);
-			if (isReflect != 0 && checkReflect)
-			{
-				Logger.LogWarning(string.Format("{0} not exported, using reflection instead", o.ToString()));
-			}
-#else
-			LuaDLL.luaS_pushobject(l, index, getAQName(o), gco, udCacheRef);
-#endif
-
-		}
+		
 
         /// <summary>
         /// analogy with function push(IntPtr l, object o, bool checkReflect)
-		/// TODO: 为什么要吧Array单独出来? only difference is the QAName
-        /// </summary>
+		/// NOTE: 为什么要把Array单独出来? only difference is the QAName
+		/// NOTE: 这里的tName 是用于查找metatable 的，而这个metatable 是作为userdata 的metatable使用的，
+		/// 所有的数组都有一个共同的metatable LuaArray
+  		///</summary>
         /// <param name="l"></param>
         /// <param name="o"></param>
 		internal void push(IntPtr l, Array o)
@@ -386,6 +366,7 @@ namespace SLua
 			bool found = gco && objMap.TryGetValue(o, out index);
 			if (found)
 			{
+                //already found, do not need to add again
 				if (LuaDLL.luaS_getcacheud(l, index, udCacheRef) == 1)
 					return -1;
 			}
@@ -394,6 +375,26 @@ namespace SLua
 			return index;
 		}
 
+		internal void push(IntPtr l, object o, bool checkReflect)
+		{
+			
+			int index = allocID (l, o);
+			if (index < 0)
+				return;
+
+			bool gco = isGcObject(o);
+
+#if SLUA_CHECK_REFLECTION
+			int isReflect = LuaDLL.luaS_pushobject(l, index, getAQName(o), gco, udCacheRef);
+			if (isReflect != 0 && checkReflect)
+			{
+				Logger.LogWarning(string.Format("{0} not exported, using reflection instead", o.ToString()));
+			}
+#else
+			LuaDLL.luaS_pushobject(l, index, getAQName(o), gco, udCacheRef);
+#endif
+
+		}
 
 		static Dictionary<Type, string> aqnameMap = new Dictionary<Type, string>();
 		static string getAQName(object o)
@@ -419,6 +420,11 @@ namespace SLua
 		{
 			return obj.GetType().IsValueType == false;
 		}
+
+        public bool isObjInLua(object obj)
+        {
+            return objMap.ContainsKey(obj);
+        }
 	}
 }
 

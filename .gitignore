@@ -16,6 +16,7 @@ obj/*
 /*.csproj
 /*.sln
 /build/luajit-osx/build*
+.localhistory
 
 /standalone/bin
 /standalone/**/obj
