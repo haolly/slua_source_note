@@ -256,6 +256,10 @@ namespace SLua
             return objMap.Count;
         }
 
+		/// <summary>
+		/// delete from cache
+		/// </summary>
+		/// <param name="index"></param>
 		internal void gc(int index)
 		{
 			object o;
@@ -326,7 +330,7 @@ namespace SLua
 			push(l, o, true);
 		}
 
-		
+
 
         /// <summary>
         /// analogy with function push(IntPtr l, object o, bool checkReflect)
@@ -377,7 +381,7 @@ namespace SLua
 
 		internal void push(IntPtr l, object o, bool checkReflect)
 		{
-			
+
 			int index = allocID (l, o);
 			if (index < 0)
 				return;

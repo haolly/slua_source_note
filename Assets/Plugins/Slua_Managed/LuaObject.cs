@@ -727,7 +727,8 @@ return index
         /// <param name="self"></param>
 		private static void completeInstanceMeta(IntPtr l, Type self)
 		{
-            //TODO: 什么时候用到的呢？
+            //NOTE: 什么时候用到的呢？
+			//用于判断是否是whether is a exported c# class ref
 			LuaDLL.lua_pushstring(l, "__typename");
 			LuaDLL.lua_pushstring(l, self.Name);
 			LuaDLL.lua_rawset(l, -3);
@@ -875,10 +876,18 @@ return index
 			LuaDLL.lua_setfield(l, -2, name);
 		}
 
+
+		/// <summary>
+		/// When an userdata is GC, if it's metatable has __gc method, the __gc method is called,
+		/// pass the userdata as argument
+		/// </summary>
+		/// <param name="l"></param>
+		/// <returns></returns>
 		[MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
 		static public int luaGC(IntPtr l)
 		{
-            //TODO: why the index is 1 ?
+            //NOTE: why the index is 1 ?
+			//there is only one argument, the userdata itself, which is created by luaS_pushobject()
 			int index = LuaDLL.luaS_rawnetobj(l, 1);
 			if (index > 0)
 			{
@@ -1423,8 +1432,7 @@ return index
         }
 
         /// <summary>
-        /// 根据p在 lua 中的类型，返回相应的c# 数据类型
-		/// TODO: 感觉像是pushVar 的相反函数
+        /// 根据p在 lua 中的类型，返回相应的c# 数据类型(table/thread/function) or real C# class obj
         /// </summary>
         /// <param name="l"></param>
         /// <param name="p"></param>
@@ -1530,8 +1538,9 @@ return index
         /// if o is value type, push it directly, if o is a ref in register, push ref
 		/// otherwise, push o and create userdata which stores the index in the cache list
 		/// NOTE: how to get the vaue? use checkVar
-		/// TODO: what is the difference between pushObject(push to cache list) and push(not push to cache list) ?
-   		/// </summary>
+		/// NOTE: what is the difference between pushObject(push to cache list) and push(not push to cache list) ?
+		/// if the object is GC collectable, we need to cache it to prevent be GC collected, and then push it onto stack
+  		/// </summary>
         /// <param name="l"></param>
         /// <param name="o"></param>
 		public static void pushVar(IntPtr l, object o)
