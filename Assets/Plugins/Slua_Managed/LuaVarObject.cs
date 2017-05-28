@@ -569,7 +569,6 @@ namespace SLua
         /// 创建一个LucCSFunction对象，放入注册表中
         /// 这两个对象都有自己的元方法
         /// NOTE: __gc only works in the metatable of userdatum
-        /// TODO: where is this used ??
         /// </summary>
         /// <param name="l"></param>
         static new public void init(IntPtr l)

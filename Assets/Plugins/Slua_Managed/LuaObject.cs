@@ -116,11 +116,12 @@ namespace SLua
 		public static void init(IntPtr l)
 		{
 			/// <summary>
-			/// ud is a table, may be a static table or an instance table
+			/// NOTE: all public field is added to instance table with getter/setter
+			/// userdata and self table all do not exit any key, so everytime  key assignment, the __newindex function is called
 			/// h[1],h[2] is get and set function, see function AddMember
 			/// 獲取當前ud 的元表，從元表中獲取k所對應的值，如果沒有，則去__parent中去找(set in function createTypeMetatable())
 			///	如果有，h[2]應該是一個Set函數
-			/// /// </summary>
+			///</summary>
 			/// <returns></returns>
 			string newindexfun = @"
 
@@ -149,8 +150,7 @@ return newindex
 ";
 
 			/// <summary>
-			/// ud is a table, may be a static table or an instance table
-			/// analogy with newindex, if value is a function, return it, if value is a table, this table contains get/set function
+			/// userdata and self table all do not exit any key, so everytime access key, the __index function is called
 			/// </summary>
 			/// <returns></returns>
 			string indexfun = @"
@@ -266,115 +266,6 @@ return index
 			}
 		}
 		#endregion
-
-		static void setupPushVar()
-		{
-			typePushMap[typeof(float)] = (IntPtr L, object o) =>
-			{
-				LuaDLL.lua_pushnumber(L, (float)o);
-			};
-			typePushMap[typeof(double)] = (IntPtr L, object o) =>
-			{
-				LuaDLL.lua_pushnumber(L, (double)o);
-			};
-
-			typePushMap[typeof(int)] =
-				(IntPtr L, object o) =>
-				{
-					LuaDLL.lua_pushinteger(L, (int)o);
-				};
-
-			typePushMap[typeof(uint)] =
-				(IntPtr L, object o) =>
-				{
-					LuaDLL.lua_pushnumber(L, Convert.ToUInt32(o));
-				};
-
-			typePushMap[typeof(short)] =
-				(IntPtr L, object o) =>
-				{
-					LuaDLL.lua_pushinteger(L, (short)o);
-				};
-
-			typePushMap[typeof(ushort)] =
-			   (IntPtr L, object o) =>
-			   {
-				   LuaDLL.lua_pushinteger(L, (ushort)o);
-			   };
-
-			typePushMap[typeof(sbyte)] =
-			   (IntPtr L, object o) =>
-			   {
-				   LuaDLL.lua_pushinteger(L, (sbyte)o);
-			   };
-
-			typePushMap[typeof(byte)] =
-			   (IntPtr L, object o) =>
-			   {
-				   LuaDLL.lua_pushinteger(L, (byte)o);
-			   };
-
-
-			typePushMap[typeof(Int64)] =
-				typePushMap[typeof(UInt64)] =
-				(IntPtr L, object o) =>
-				{
-#if LUA_5_3
-					LuaDLL.lua_pushinteger(L, (long)o);
-#else
-					LuaDLL.lua_pushnumber(L, System.Convert.ToDouble(o));
-#endif
-				};
-
-			typePushMap[typeof(string)] = (IntPtr L, object o) =>
-			{
-				LuaDLL.lua_pushstring(L, (string)o);
-			};
-
-			typePushMap[typeof(bool)] = (IntPtr L, object o) =>
-			{
-				LuaDLL.lua_pushboolean(L, (bool)o);
-			};
-
-			typePushMap[typeof(LuaTable)] =
-				typePushMap[typeof(LuaFunction)] =
-                typePushMap[typeof(LuaThread)] =
-                (IntPtr L, object o) =>
-				{
-					((LuaVar)o).push(L);
-				};
-#if !SLUA_STANDALONE
-			typePushMap[typeof(Vector3)] = (IntPtr L, object o) =>
-			{
-				pushValue(L, (Vector3)o);
-			};
-
-			typePushMap[typeof(Vector2)] = (IntPtr L, object o) =>
-			{
-				pushValue(L, (Vector2)o);
-			};
-
-			typePushMap[typeof(Vector4)] = (IntPtr L, object o) =>
-			{
-				pushValue(L, (Vector4)o);
-			};
-
-			typePushMap[typeof(Quaternion)] = (IntPtr L, object o) =>
-			{
-				pushValue(L, (Quaternion)o);
-			};
-
-			typePushMap[typeof(Color)] = (IntPtr L, object o) =>
-			{
-				pushValue(L, (Color)o);
-			};
-#endif
-
-			typePushMap[typeof(LuaCSFunction)] = (IntPtr L, object o) =>
-			{
-				pushValue(L, (LuaCSFunction)o);
-			};
-		}
 
 		static int getOpFunction(IntPtr l, string f, string tip)
 		{
@@ -687,7 +578,6 @@ return index
 			LuaDLL.lua_setfield(l, -3, "__fullname");
 
             //下面两个metamethod 控制了字段的赋值和获取值的方式, see init function
-			//TODO: 重点，这两个函数怎么工作的？
 			index_func.push(l);
 			LuaDLL.lua_setfield(l, -2, "__index");
 

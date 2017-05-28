@@ -37,7 +37,7 @@ namespace SLua
 	{
 		protected LuaState state = null;
         /// <summary>
-        /// 對於thread, function 等， 這個是在註冊表中的引用
+        /// 對於thread, function, table 等， 這個是在註冊表中的引用
 		/// TODO: 爲啥要這樣做？
         /// </summary>
 		protected int valueref = 0;
@@ -562,7 +562,6 @@ namespace SLua
 		/// 默认是从Resources目录加载的，如果是通过动态下载AssetBundle，需要自己实现
         /// /// </summary>
 		static public LoaderDelegate loaderDelegate;
-        static public LoaderDelegate loaderDelegate;
 		static public OutputDelegate logDelegate;
 		static public OutputDelegate errorDelegate;
 
@@ -583,7 +582,6 @@ namespace SLua
         Dictionary<Type, PushVarDelegate> typePushMap = new Dictionary<Type, PushVarDelegate>();
 
 
-		public static LuaState main;
         //Global map, store all LuaState, map IntPtr 2 LuaState(c# class)
         public static LuaState main;
 		static Dictionary<IntPtr, LuaState> statemap = new Dictionary<IntPtr, LuaState>();
@@ -990,6 +988,7 @@ end
             int n = LuaDLL.lua_gettop(L);
             s.Length = 0;
 
+			//get lua function tostring
             LuaDLL.lua_getglobal(L, "tostring");
 
             for (int i = 1; i <= n; i++)
@@ -1185,8 +1184,6 @@ end
 					LuaDLL.lua_pop(L, 2);
 					return false;
 				}
-				//TODO: pcall 調用的是一個luaCSFunction, 這個函數的返回值表示壓入棧上的結果數目 ？？第一個值 true/false 是怎麼檢測的？
-				// 爲啥會少一個值 ？？
 				LuaDLL.lua_remove(L, errfunc); // pop error function
 				ret = topObjects(errfunc - 1);
 				return true;
@@ -1197,12 +1194,6 @@ end
 			throw new Exception(err);
 		}
 
-        /// <summary>
-        /// TODO:， loader 在 lua 中的使用 ???
-		/// require 机制
-        /// </summary>
-        /// <param name="fn"></param>
-        /// <returns></returns>
 		internal static byte[] loadFile(string fn)
 		{
 			try {
@@ -1297,6 +1288,7 @@ end
 			} else {
 				LuaDLL.lua_getref (L, reference);
 				LuaDLL.lua_pushinteger (L, index);
+				//TODO: 为啥这里不用rawgeti ?
 				LuaDLL.lua_gettable (L, -2);
 				object returnValue = getObject (L, -1);
                 LuaDLL.lua_pop(L, 2);
@@ -1340,6 +1332,7 @@ end
 
         /// <summary>
         /// TODO: 這裏設置table字段的時候，lua_rawseti 和 lua_settable 是如何抉擇的？
+        /// NOTE: when o is gc collectable, only get the ud(cache index)
         /// </summary>
         /// <param name="reference"></param>
         /// <param name="index"></param>
