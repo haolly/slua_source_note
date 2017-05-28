@@ -692,6 +692,7 @@ namespace SLua
 
         /// <summary>
         /// //check the data in the stack postion index is a userData, or it's most __base is a userData.
+        /// TODO: where is the __base got set??
         /// if is, return the userdata(which is a int index) or -1 if it's not
         /// ref luaS_pushobject
         /// </summary>

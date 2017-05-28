@@ -717,8 +717,8 @@ dumpstack=function()
     while true do
       local name, value = debug.getlocal(f, i)
       if not name then break end
-      if string.sub(name, 1, 1) ~= '(' then 
-        dump = dump ..  ""    "" .. name .. ""="" .. tostring(value) .. ""\n"" 
+      if string.sub(name, 1, 1) ~= '(' then
+        dump = dump ..  ""    "" .. name .. ""="" .. tostring(value) .. ""\n""
       end
       i = i + 1
     end
@@ -966,7 +966,7 @@ end
 				LuaDLL.lua_pop(L, 1);
 			}
 			LuaDLL.lua_settop(L, n);
-            
+
             LuaDLL.lua_getglobal(L, "debug");
             LuaDLL.lua_getfield(L, -1, "traceback");
             LuaDLL.lua_call(L, 0, 1);
@@ -982,7 +982,7 @@ end
 
 			return 0;
 		}
-        
+
         // copy from print()
         [MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
         internal static int printerror(IntPtr L)
@@ -1007,7 +1007,7 @@ end
                 LuaDLL.lua_pop(L, 1);
             }
             LuaDLL.lua_settop(L, n);
-            
+
             LuaDLL.lua_getglobal(L, "debug");
             LuaDLL.lua_getfield(L, -1, "traceback");
             LuaDLL.lua_call(L, 0, 1);
@@ -1533,6 +1533,7 @@ end
                 LuaDLL.lua_pushboolean(L, (bool)o);
             };
 
+			//NOTE: 因为这几个类本身是有ref 存储在 register 中的，所以push  的时候不用cache
             typePushMap[typeof(LuaTable)] =
                 typePushMap[typeof(LuaFunction)] =
                 typePushMap[typeof(LuaThread)] =

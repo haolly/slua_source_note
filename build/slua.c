@@ -473,7 +473,8 @@ LUA_API int luaS_pushobject(lua_State *l, int index, const char* t, int gco, int
 
 	//step 2
 	//set the metatable of userdata
-	//TODO: why do this?
+	//NOTE: why do this?
+	//set instance table as the metatable, so it can call methods
 	lua_setmetatable(l, -2);
 	return is_reflect;
 }
