@@ -29,13 +29,16 @@ namespace SLua
 	{
 		class Timer
 		{
+			//timer Id
 			internal int sn;
 			internal int cycle;
 			internal int deadline;
 			internal Func<int, bool> handler;
 			internal bool delete;
+			//the list in wheel
 			internal LinkedList<Timer> container;
 		}
+		//runner ?
 		class Wheel
 		{
 			internal static int dial_scale = 256;
@@ -69,6 +72,7 @@ namespace SLua
 		static int nextSn = 0;
 		static int jiffies_msec = 20;
 		static float jiffies_sec = jiffies_msec * .001f;
+		//TODO: why use multiple wheel ? share pressure ?
 		static Wheel[] wheels;
 		static float pileSecs;
 		static float nowTime;
@@ -121,6 +125,7 @@ namespace SLua
 			return (int)(nowTime * 1000);
 		}
 
+		//TODO:
 		internal static void tick(float deltaTime)
 		{
 			nowTime += deltaTime;
@@ -270,6 +275,7 @@ namespace SLua
 						ua = (Action<int>)ld.d;
 					else
 					{
+						//TODO: why do more one get() ?
 						IntPtr ml = LuaState.get(l).L;
 						ua = (int id) =>
 						{
@@ -281,6 +287,7 @@ namespace SLua
 					}
 					ld.d = ua;
 					pushValue(l, true);
+					//push tm.sn
 					pushValue(l, add(delay, ua));
 					return 2;
 				}

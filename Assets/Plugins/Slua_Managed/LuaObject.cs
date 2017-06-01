@@ -1131,11 +1131,13 @@ return index
 
 			LuaDLL.lua_pushvalue(l, p); // push function
 
+			//pop the function and create a ref use the function
 			int fref = LuaDLL.luaL_ref(l, LuaIndexes.LUA_REGISTRYINDEX); // new ref function
 			LuaDelegate f = new LuaDelegate(l, fref);
 			LuaDLL.lua_pushvalue(l, p);
 			LuaDLL.lua_pushinteger(l, fref);
 			LuaDLL.lua_settable(l, -3); // __LuaDelegate[func]= fref
+			//TODO: 这里的f 在settable之后是否已经是gc collectable ? 如果不是，为什么？
 			state.delgateMap[fref] = f;
 			return f;
 		}

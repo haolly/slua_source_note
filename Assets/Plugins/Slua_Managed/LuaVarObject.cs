@@ -220,7 +220,9 @@ namespace SLua
         /// 當使用一個String來訪問時，可以訪問是一個Dictionary<string,T>, 或者是對象的方法，屬性，字段
         /// Note:這個函數假定table在stack的1位置，key在2位置
         /// Note:不能访问没有导出的父类的成员、属性、字段等 TODO: FIXME:
-        /// BUG: 导出List<int> 后，就不能用下表来访问了,必须要用GetItem函数
+        /// 如果父类没有导入，那么父类就默认是__luabaseobject, ref createTypeMetatable()
+        /// NOTE: 导出List<int> 后，就不能用下表来访问了,必须要用GetItem函数,
+        /// 因为只有在导出Array类型的类时才有下表访问, ref LuaArray
         /// </summary>
         [MonoPInvokeCallbackAttribute(typeof(LuaCSFunction))]
         static public int luaIndex(IntPtr l)
@@ -228,7 +230,6 @@ namespace SLua
             try
             {
                 ObjectCache oc = ObjectCache.get(l);
-                //TODO: why the index is 1 ?
                 object self = oc.get(l, 1);
 
                 LuaTypes t = LuaDLL.lua_type(l, 2);
@@ -292,7 +293,6 @@ namespace SLua
                 object v = (self as IDictionary)[key];
                 if (v != null)
                 {
-                    //TODO, 为啥多push一个true？
                     pushValue(l, true);
                     pushVar(l, v);
                     return 2;
@@ -378,13 +378,6 @@ namespace SLua
             return cache[key];
         }
 
-        /// <summary>
-        /// TODO, 這裏的返回值
-        /// </summary>
-        /// <param name="l"></param>
-        /// <param name="self"></param>
-        /// <param name="key"></param>
-        /// <returns></returns>
         static int newindexString(IntPtr l, object self, string key)
         {
             if (self is IDictionary)
@@ -463,7 +456,6 @@ namespace SLua
                     dictKey = changeType(dictKey, keyType); // if key is not int but ushort/uint,  IDictionary will cannot find the key and return null!
                 }
 
-                //TODO, 爲啥要多一個true ？？
                 pushValue(l, true);
                 pushVar(l, dict[dictKey]);
                 return 2;
@@ -486,12 +478,15 @@ namespace SLua
             }
             else if (self is IDictionary)
             {
+                //key type
                 Type keyType = type.GetGenericArguments()[0];
                 object dictKey = index;
                 dictKey = changeType(dictKey, keyType); // if key is not int but ushort/uint,  IDictionary will cannot find the key and return null!
 
+                //whether type is IList<T> ?
                 if (type.IsGenericType)
                 {
+                    //value type
                     Type t = type.GetGenericArguments()[1];
                     (self as IDictionary)[dictKey] = changeType(checkVar(l, 3), t);
                 }

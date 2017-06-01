@@ -346,6 +346,14 @@ namespace SLua
 		#endregion
 
 		#region LuaType
+		/// <summary>
+		/// check the type of element at index p is LUA_TFUNCTION, and create or get a luadelegate
+		/// DelegateTable store the ref to LuaDelegate in it's field p
+		/// </summary>
+		/// <param name="l"></param>
+		/// <param name="p"></param>
+		/// <param name="f"></param>
+		/// <returns></returns>
 		static public bool checkType(IntPtr l, int p, out LuaDelegate f)
 		{
 			LuaState state = LuaState.get(l);
@@ -366,6 +374,7 @@ namespace SLua
 				int fref = LuaDLL.lua_tointeger(l, -1);
 				LuaDLL.lua_pop(l, 1); // pop ref value;
 				f = state.delgateMap[fref];
+				//be reclaimed by gc?
 				if (f == null)
 				{
 					f = newDelegate(l, p);
