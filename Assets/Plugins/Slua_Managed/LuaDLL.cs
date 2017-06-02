@@ -1,6 +1,10 @@
 using System;
 using System.Runtime.InteropServices;
 
+/// <summary>
+/// ref document https://msdn.microsoft.com/en-us/library/26thfadc(v=vs.110).aspx
+/// https://msdn.microsoft.com/en-us/library/eaw10et3(v=vs.110).aspx
+/// </summary>
 namespace SLua
 {
 #pragma warning disable 414
@@ -61,6 +65,9 @@ namespace SLua
 #endif
     }
 
+    /// <summary>
+    /// class and struct passed to unmanaged code need specify their layout, ref https://msdn.microsoft.com/en-us/library/awbckfbz(v=vs.110).aspx
+    /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct ReaderInfo
     {

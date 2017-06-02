@@ -384,7 +384,8 @@ return Class
         /// <summary>
         /// NOTE: addMember will push a wrapped PCallLuaCSFunction, so every function pushed by addMember **must** return two result,
 		/// the first is a status indicator
-        /// </summary>
+		/// Slua.out is useless, according to generated code
+  		/// </summary
         /// <param name="l"></param>
         static public void reg(IntPtr l)
 		{

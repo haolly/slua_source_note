@@ -1325,6 +1325,7 @@ return index
 
         /// <summary>
         /// 根据p在 lua 中的类型，返回相应的c# 数据类型(table/thread/function) or real C# class obj
+		/// TODO: 调用unmanaged code 如果返回一个allocated object, 怎么回收它？
         /// </summary>
         /// <param name="l"></param>
         /// <param name="p"></param>
