@@ -514,6 +514,7 @@ namespace SLua
     /// </summary>
     public class LuaState : IDisposable
     {
+        //TODO: 这是啥？
         IntPtr l_;
         int mainThread = 0;
         //analogy with pushVar, when push GC collectable object to stack, we need to prevent the object be eclaimed by gc

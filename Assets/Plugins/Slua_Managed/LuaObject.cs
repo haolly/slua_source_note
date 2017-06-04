@@ -432,8 +432,9 @@ return index
 		}
 
         /// <summary>
-        /// TODO: newTypeTable中已经创建了类所对应的table,为啥还要再创建一个instance 的table ??
-		/// TODO: why not create a userData ??
+        /// NOTE: newTypeTable中已经创建了类所对应的table,为啥还要再创建一个instance 的table ??
+		/// NOTE: static table contains static method and field, instance contains instance method and filed
+		/// self table contains **Type** info
         /// </summary>
         /// <param name="l"></param>
         /// <param name="t"></param>
@@ -617,8 +618,7 @@ return index
         /// <param name="self"></param>
 		private static void completeInstanceMeta(IntPtr l, Type self)
 		{
-            //NOTE: 什么时候用到的呢？
-			//用于判断是否是whether is a exported c# class ref
+            //TODO: 什么时候用到的呢？
 			LuaDLL.lua_pushstring(l, "__typename");
 			LuaDLL.lua_pushstring(l, self.Name);
 			LuaDLL.lua_rawset(l, -3);
@@ -768,7 +768,7 @@ return index
 
 
 		/// <summary>
-		/// When an userdata is GC, if it's metatable has __gc method, the __gc method is called,
+		/// When an userdata is GC reclaimed, if it's metatable has __gc method, the __gc method is called,
 		/// pass the userdata as argument
 		/// </summary>
 		/// <param name="l"></param>

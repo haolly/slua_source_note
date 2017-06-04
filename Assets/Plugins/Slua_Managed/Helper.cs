@@ -180,6 +180,7 @@ return Class
 
 					object ret = target.Invoke(args);
 					pushValue(l, true);
+					//NOTE: ret is a object, so pushVar will creae an userData and set it's metatable, left the userdata on the stack
 					pushVar(l, ret);
 					return 2;
 				}

@@ -4,6 +4,8 @@ using System.Runtime.InteropServices;
 /// <summary>
 /// ref document https://msdn.microsoft.com/en-us/library/26thfadc(v=vs.110).aspx
 /// https://msdn.microsoft.com/en-us/library/eaw10et3(v=vs.110).aspx
+/// value type and reference type can all be passed by value and by reference, and reference type always can see the changes made by calee no matter passed by value or reference
+/// https://msdn.microsoft.com/en-us/library/zah6xy75(v=vs.110).aspx 这里的文档说的不明确，需要看下面这个https://msdn.microsoft.com/en-us/library/23acw07k(v=vs.110).aspx
 /// </summary>
 namespace SLua
 {
@@ -562,6 +564,11 @@ namespace SLua
             }
         }
 
+        /// <summary>
+        /// NOTE: A reference to the function pointer to a managed delegate held by unmanaged code does not prevent the common language runtime from performing garbage collection on the managed object.
+        /// </summary>
+        /// <param name="luaState"></param>
+        /// <param name="function"></param>
         public static void lua_pushcfunction(IntPtr luaState, LuaCSFunction function)
         {
 #if SLUA_STANDALONE
@@ -727,9 +734,23 @@ namespace SLua
 #endif
         }
 
+        /// <summary>
+        /// NOTE: called by lua_pushcclosure and lua_pushcfunction, and before this, the function **must** be pinned
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="f"></param>
+        /// <param name="nup"></param>
         [DllImport(LUADLL, CallingConvention = CallingConvention.Cdecl)]
         public static extern void lua_pushcclosure(IntPtr l, IntPtr f, int nup);
 
+        /// <summary>
+        /// TODO: why only standalone version need to pain the delegate?
+        /// NOTE: MSDN ref: A reference to the function pointer to a managed delegate held by unmanaged code does not prevent the common language runtime 
+        /// from performing garbage collection on the managed object.
+        /// </summary>
+        /// <param name="l"></param>
+        /// <param name="f"></param>
+        /// <param name="nup"></param>
         public static void lua_pushcclosure(IntPtr l, LuaCSFunction f, int nup)
         {
 #if SLUA_STANDALONE

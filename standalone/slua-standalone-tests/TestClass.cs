@@ -39,7 +39,8 @@ namespace SLua.Test
         [Test]
         public void SetParentClassField()
         {
-            //TODO: 這裏CreateClass創建出來的對象是一個userData，那麼在lua中是怎麼給這個userData 的字段賦值的呢？
+            //NOTE: 這裏CreateClass創建出來的對象是一個userData，那麼在lua中是怎麼給這個userData 的字段賦值的呢？
+            // 因为这个类没有导出，所以创建的类实例被 push 到栈上去的时候设置了 LuaVarObject 为他的 metatable，LuaVarObject 中有__index 方法
             var code = @"
 local childClass = Slua.CreateClass('SLua.Test.TestClass+ChildClass') 
 childClass.ParentField = 123

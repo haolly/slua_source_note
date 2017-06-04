@@ -467,6 +467,7 @@ LUA_API int luaS_pushobject(lua_State *l, int index, const char* t, int gco, int
 	{
         //pop nil
 		lua_pop(l, 1);
+		//if the pusing object was not exprted to lua, set LuaVarObject as the metatable
 		luaL_getmetatable(l, "LuaVarObject");
 		is_reflect = 1;
 	}

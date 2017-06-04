@@ -381,7 +381,6 @@ namespace SLua
 
 		internal void push(IntPtr l, object o, bool checkReflect)
 		{
-
 			int index = allocID (l, o);
 			if (index < 0)
 				return;

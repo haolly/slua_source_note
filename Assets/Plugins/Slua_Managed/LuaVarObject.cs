@@ -31,6 +31,7 @@ namespace SLua
 
     // Try to avoid using this class for not export class
     // This class use reflection and not completed, you should write your code for your purpose.
+    // If an object was not exported, then it's metatable will be set to this object ref : luaS_pushobject()
     class LuaVarObject : LuaObject
     {
 
@@ -219,7 +220,7 @@ namespace SLua
         /// 這個類用於在沒有導出lua接口的時候使用，效率不好，因爲使用了反射
         /// 當使用一個String來訪問時，可以訪問是一個Dictionary<string,T>, 或者是對象的方法，屬性，字段
         /// Note:這個函數假定table在stack的1位置，key在2位置
-        /// Note:不能访问没有导出的父类的成员、属性、字段等 TODO: FIXME:
+        /// Note:不能访问没有导出的父类的成员、属性、字段等 
         /// 如果父类没有导入，那么父类就默认是__luabaseobject, ref createTypeMetatable()
         /// NOTE: 导出List<int> 后，就不能用下表来访问了,必须要用GetItem函数,
         /// 因为只有在导出Array类型的类时才有下表访问, ref LuaArray
