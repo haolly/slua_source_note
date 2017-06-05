@@ -121,6 +121,7 @@ namespace SLua
 			/// h[1],h[2] is get and set function, see function AddMember
 			/// 獲取當前ud 的元表，從元表中獲取k所對應的值，如果沒有，則去__parent中去找(set in function createTypeMetatable())
 			///	如果有，h[2]應該是一個Set函數
+			/// TODO: how to access static field and static function ?
 			///</summary>
 			/// <returns></returns>
 			string newindexfun = @"

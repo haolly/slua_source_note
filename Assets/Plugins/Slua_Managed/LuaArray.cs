@@ -120,6 +120,7 @@ namespace SLua
 				int i;
 				checkType(l, 2, out i);
 				assert(i>0,"index base 1");
+				//get cached object, the element at stack index 3 is a userData
 				object o=checkVar(l, 3);
 				Type et = a.GetType().GetElementType();
 				a.SetValue(changeType(o,et), i-1);

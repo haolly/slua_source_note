@@ -1372,6 +1372,7 @@ end
 
         /// <summary>
         /// return all object from statck where statck position start from postion **from[exclude]**  to the top of the stack
+        /// if ther are only one element, return it, else return all element as Array
         /// </summary>
         /// <param name="from"></param>
         /// <returns></returns>

@@ -7,7 +7,7 @@ namespace SLua.Test
     public class TestArray
     {
         private LuaSvr luaSvr;
-            
+
         [SetUp]
         public void Init()
         {
@@ -15,6 +15,10 @@ namespace SLua.Test
             luaSvr.init(x => { }, () => { });
         }
 
+        /// <summary>
+        /// Slua.MakeArray will trigger C# function call, which push an array into stack(and cache it)
+        /// luaState.doString call checkVar to get the cache object in c#
+        /// </summary>
         [Test]
         public void TestCreateArray()
         {
@@ -27,6 +31,9 @@ namespace SLua.Test
             Assert.AreEqual(typeof(ulong[]), ret.GetType());
         }
 
+        /// <summary>
+        /// arr[1] will trigger c# LuaArray __newindex function, which change the cached object
+        /// </summary>
         [Test]
         public void ArraryIndexSet()
         {
@@ -51,7 +58,7 @@ return Func
         public void ArrayAssign()
         {
             var code = @"
-    
+
     local arr = Slua.MakeArray('System.Object', {'a', 1, {1}})
     return arr
 ";
