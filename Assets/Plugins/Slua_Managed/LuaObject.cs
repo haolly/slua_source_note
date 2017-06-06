@@ -557,7 +557,7 @@ return index
 			completeInstanceMeta(l, self);
 			completeTypeMeta(l, constractor, self);
 
-			LuaDLL.lua_pop(l, 1); // pop type Table(static table)
+			LuaDLL.lua_pop(l, 1); // pop type Table(self table)
 		}
 
         /// <summary>
@@ -597,7 +597,7 @@ return index
 			LuaDLL.lua_pushcfunction(l, typeToString);
 			LuaDLL.lua_setfield(l, -2, "__tostring");
 
-			//set self's metatable as the static table,
+			//set self's metatable to the static table,
 			//the static table has __index/__newindex/__call/__tostring metamethod
 			LuaDLL.lua_pushvalue(l, -1);
 			LuaDLL.lua_setmetatable(l, -3);

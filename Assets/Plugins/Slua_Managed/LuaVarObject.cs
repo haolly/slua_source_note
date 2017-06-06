@@ -40,6 +40,9 @@ namespace SLua
         /// </summary>
         static Dictionary<Type, Dictionary<string, List<MemberInfo>>> cachedMemberInfos = new Dictionary<Type, Dictionary<string, List<MemberInfo>>>();
 
+        /// <summary>
+        /// Wrap a list a methodinfo, when invoked, try to find the best matched one, if not find, use the first one instead
+        /// </summary>
         class MethodWrapper
         {
             object self;
@@ -158,7 +161,8 @@ namespace SLua
                 for (int k = 0; k < mis.Count; k++)
                 {
                     MethodInfo m = (MethodInfo)mis[k];
-                    //TODO , why start from 2 ??
+                    //NOTE: , why start from 2 ??
+                    //because the first argument in function call is self
                     if (matchType(l, 2, m.GetParameters(), m.IsStatic))
                     {
                         return forceInvoke(l, m);
@@ -193,6 +197,7 @@ namespace SLua
 							++ct;
 						}
 					}
+                    //return status code + result
 					return ct;
 				}
 				return 1;
@@ -220,7 +225,7 @@ namespace SLua
         /// 這個類用於在沒有導出lua接口的時候使用，效率不好，因爲使用了反射
         /// 當使用一個String來訪問時，可以訪問是一個Dictionary<string,T>, 或者是對象的方法，屬性，字段
         /// Note:這個函數假定table在stack的1位置，key在2位置
-        /// Note:不能访问没有导出的父类的成员、属性、字段等 
+        /// Note:不能访问没有导出的父类的成员、属性、字段等
         /// 如果父类没有导入，那么父类就默认是__luabaseobject, ref createTypeMetatable()
         /// NOTE: 导出List<int> 后，就不能用下表来访问了,必须要用GetItem函数,
         /// 因为只有在导出Array类型的类时才有下表访问, ref LuaArray
@@ -273,14 +278,6 @@ namespace SLua
             return o.GetType();
         }
 
-        /// <summary>
-        /// 根据self的类型来获取key所对应的值
-        /// 支持方法、属性、字段, 不支持Event
-        /// /// </summary>
-        /// <param name="l"></param>
-        /// <param name="self"></param>
-        /// <param name="key"></param>
-        /// <returns>TODO,返回值表示向棧上壓入元素的個數，在哪裏使用這個信息呢？</returns>
         static int indexString(IntPtr l, object self, string key)
         {
             Type t = getType(self);
@@ -308,9 +305,9 @@ namespace SLua
                 return error(l, "Can't find " + key);
             }
 
-            //TODO, 为啥多push一个true？
             pushValue(l, true);
             MemberInfo mi = mis[0];
+            //NOTE: get instance or static Property/filed/method
             switch (mi.MemberType)
             {
                 case MemberTypes.Property:
@@ -587,7 +584,7 @@ namespace SLua
     }
 
     /// <summary>
-    /// TODO: why wrap the Type class ?
+    /// TODO: why wrap the Type class ? ref GetType()
     /// </summary>
     class LuaClassObject
     {

@@ -254,8 +254,9 @@ namespace SLua
         }
 
         /// <summary>
-        /// TODO: 这里传入的c#类型的参数是怎么回收的??
         /// if the argument is a LuaTable ?? how to release the talbe ?
+        /// NOTE: 这里传入的c#类型的参数是怎么回收的??
+        /// 如果push上去的是一个C#object，那么会push一个userData，这个userData会有metatable，metatable有__gc 方法，在lua回收栈上面的数据的时候，gc会触发
         /// </summary>
         /// <param name="args"></param>
         /// <returns></returns>

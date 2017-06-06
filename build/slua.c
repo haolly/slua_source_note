@@ -460,7 +460,7 @@ LUA_API int luaS_pushobject(lua_State *l, int index, const char* t, int gco, int
 	if (gco) cacheud(l, index, cref);
 
 
-    //get the metatable associated with obj's QAName, which is set when create the represent table of the C# class in instance table
+    //NOTE: get the metatable associated with obj's QAName, which is set when create the represent table of the C# class in instance table
 	//the metatable is the instance table
 	luaL_getmetatable(l, t);
 	if (lua_isnil(l, -1))
@@ -474,8 +474,7 @@ LUA_API int luaS_pushobject(lua_State *l, int index, const char* t, int gco, int
 
 	//step 2
 	//set the metatable of userdata
-	//TODO: why do this?
-	//set instance table as the metatable, so it can call methods, TODO: how?
+	//set instance table as the metatable, so it can call methods. the metatable has __index/ __newindex metamethods
 	lua_setmetatable(l, -2);
 	return is_reflect;
 }
